@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Imperio - Evolución</title>
+    <style>
+        :root {
+            /* Mantenemos tu paleta de colores establecida */
+            --bg-color: #121212;
+            --text-color: #ffffff;
+            --accent-color: #00ff88;
+            --panel-bg: #1e1e1e;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden; /* Evita que la pantalla salte al tocar en el celular */
+        }
+
+        h1 {
+            color: var(--accent-color);
+            font-size: 24px;
+            margin: 15px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        #game-container {
+            background-color: var(--panel-bg);
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            background-color: #000;
+            border: 2px solid #333;
+            border-radius: 4px;
+            display: block;
+            image-rendering: pixelated; /* Mantiene la estética Pixel Art */
+        }
+
+        #ui-panel {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Imperio</h1>
+    <div id="game-container">
+        <!-- Lienzo optimizado para el ancho de un celular estándar (320x320) -->
+        <canvas id="gameCanvas" width="320" height="320"></canvas>
+        <div id="ui-panel">
+            Mundo generado. Día 1.
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN BASE ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const uiPanel = document.getElementById('ui-panel');
+
+        // Tamaño de cada "pixel" o bloque en el mapa (20x20 bloques en total)
+        const TILE_SIZE = 16; 
+        const COLS = canvas.width / TILE_SIZE;
+        const ROWS = canvas.height / TILE_SIZE;
+
+        // Paleta de colores del terreno (Estilo Pixel Art)
+        const TERRAIN_COLORS = {
+            0: '#1e3f5a', // Agua profunda (Mares)
+            1: '#2a5b84', // Agua poco profunda (Ríos/Playas)
+            2: '#c2b280', // Arena/Desierto
+            3: '#2d5a27', // Pasto/Llanura
+            4: '#1b3b18', // Bosque denso / Selva
+            5: '#5c5c5c'  // Montaña/Piedra
+        };
+
+        // Matriz que guardará los datos del mapa
+        let map = [];
+
+        // --- FUNCIONES DEL MUNDO ---
+
+        function generateMap() {
+            map = [];
+            for (let y = 0; y < ROWS; y++) {
+                let row = [];
+                for (let x = 0; x < COLS; x++) {
+                    // Generación aleatoria básica para iniciar (0 al 5)
+                    let randomTile = Math.floor(Math.random() * 6);
+                    row.push(randomTile);
+                }
+                map.push(row);
+            }
+        }
+
+        function drawMap() {
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    let tileType = map[y][x];
+                    ctx.fillStyle = TERRAIN_COLORS[tileType];
+                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                }
+            }
+        }
+
+        // --- BUCLE PRINCIPAL (GAME LOOP) ---
+        function gameLoop() {
+            // 1. Limpiar pantalla en cada fotograma
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Dibujar el mapa
+            drawMap();
+
+            // 3. (Aquí dibujaremos a los avatares más adelante)
+
+            // 4. Repetir el bucle infinitamente
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- ARRANQUE DEL JUEGO ---
+        generateMap();
+        gameLoop();
+    </script>
+</body>
+</html>
