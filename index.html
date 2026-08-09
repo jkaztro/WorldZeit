@@ -3,67 +3,370 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldZeit - Estrategia en la Nube</title>
+    <title>WorldZeit - Alta Resolución y Detalle Gráfico</title>
     <style>
+        :root {
+            --bg-dark: #070709;
+            --panel-bg: #111115;
+            --border-color: #22222d;
+            --accent-green: #00ffcc;
+            --accent-gold: #ffd700;
+            --accent-warn: #ff4444;
+            --text-main: #d0d0d6;
+        }
+
         body {
             margin: 0;
-            background: #111;
-            color: #fff;
-            font-family: monospace;
+            background: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 520px;
+            align-items: center;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 15px;
+            color: var(--accent-green);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 8px;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            flex-wrap: wrap;
             justify-content: center;
-            height: 100vh;
+        }
+
+        .resource-item span {
+            color: var(--accent-gold);
+        }
+
+        .canvas-container {
+            position: relative;
             overflow: hidden;
+            border: 2px solid var(--border-color);
+            background: #0d0d11;
+            border-radius: 6px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            width: 500px;
+            height: 500px;
+            cursor: grab;
         }
+
         canvas {
-            border: 2px solid #444;
-            background: #222;
+            display: block;
+            transform-origin: 0 0;
         }
-        #ui {
-            margin-top: 10px;
-            font-size: 16px;
+
+        .action-container {
+            margin: 5px 0;
+            display: flex;
+            gap: 6px;
+        }
+
+        button.btn-primary {
+            background: linear-gradient(135deg, #1f4037, #99f2c8);
+            color: #0c0c0e;
+            border: none;
+            padding: 5px 10px;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        button.btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .panels-wrapper {
+            display: flex;
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
+            margin-top: 4px;
+        }
+
+        .control-panel {
+            flex: 1;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 6px;
+            height: 95px;
+            overflow-y: auto;
+            font-size: 10px;
+            text-align: left;
+        }
+
+        .control-panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .control-panel::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 2px;
+        }
+
+        .control-panel strong {
+            color: var(--accent-green);
+            display: block;
+            margin-bottom: 3px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 2px;
+        }
+
+        button.btn-sm {
+            background: #1a1a24;
+            color: var(--accent-green);
+            border: 1px solid var(--border-color);
+            border-radius: 3px;
+            cursor: pointer;
+            padding: 2px 5px;
+            font-size: 9px;
+            transition: background 0.2s;
+        }
+
+        button.btn-sm:hover {
+            background: var(--accent-green);
+            color: #0c0c0e;
+        }
+
+        #adviceBox {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 5px;
+            background: #16130a;
+            border: 1px solid #4d3d00;
+            color: #ffda6a;
+            padding: 5px;
+            border-radius: 6px;
+            font-size: 10px;
+            box-sizing: border-box;
+            text-align: center;
         }
     </style>
 </head>
 <body>
 
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <div id="ui">Oro: <span id="goldVal">100</span> | Madera: <span id="woodVal">100</span></div>
+    <header>
+        <h1>WorldZeit // HD Matrix</h1>
+        <button class="btn-sm" onclick="toggleUI()" id="toggleUiBtn">Ocultar Menú</button>
+    </header>
+
+    <div class="dashboard" id="mainDashboard">
+        <div class="resource-item">Año: <span id="yearVal">1</span></div>
+        <div class="resource-item">Oro: <span id="goldVal">100</span></div>
+        <div class="resource-item">Madera: <span id="woodVal">100</span></div>
+        <div class="resource-item">Comida: <span id="foodVal">100</span></div>
+        <div class="resource-item">Piedra: <span id="stoneVal">50</span></div>
+        <div class="resource-item">Mineral: <span id="mineralVal">30</span></div>
+    </div>
+
+    <div class="canvas-container" id="canvasContainer">
+        <!-- Canvas interno escalado por alta resolución (High-DPI rendering) -->
+        <canvas id="gameCanvas" width="1600" height="1600" style="width: 800px; height: 800px;"></canvas>
+    </div>
+
+    <div class="action-container" id="actionContainer">
+        <button class="btn-primary" onclick="foundNewCity()">+ Fundar Colonia (Req: 50 Madera, 50 Oro)</button>
+        <button class="btn-sm" onclick="zoomIn()">Zoom +</button>
+        <button class="btn-sm" onclick="zoomOut()">Zoom -</button>
+    </div>
+
+    <div class="panels-wrapper" id="panelsWrapper">
+        <div class="control-panel" id="villagerControls"></div>
+        <div class="control-panel" id="cityControls"></div>
+    </div>
+
+    <div id="adviceBox">
+        <strong>Consejo del Imperio:</strong> Mapa en alta definición vectorial activado. Los recursos se renuevan cada 10 años.
+    </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        const ROWS = 20;
-        const COLS = 20;
-        const CELL_SIZE = canvas.width / COLS;
+        const MAP_SIZE = 40; 
+        const CELL_SIZE = 40; // 1600px / 40 celdas = nitidez hiperdetallada por celda
+        let zoomLevel = 1.0;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX, startY;
 
-        // Estado del juego
-        let fogMap = Array(ROWS).fill().map(() => Array(COLS).fill(0));
-        let resources = { gold: 100, wood: 100, woodRate: 1.0 };
+        let terrainMap = Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0));
+        let fogMap = Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0)); 
+
+        let resources = { gold: 100, wood: 100, food: 100, stone: 50, mineral: 30 };
+        let currentYear = 1;
         
-        // Unidades de ejemplo (Explorador)
-        let units = [
-            { x: 10, y: 10, visionRange: 3 }
+        const CEMETERY = { x: MAP_SIZE - 2, y: 1 };
+        let graves = []; 
+        const ROLES = ["cazador", "pescador", "agricultor", "constructor", "leñador", "minero"];
+
+        let cities = [
+            { id: 1, name: "Capital Alpha", x: 20, y: 20, relation: "Alianza", status: "Estable" }
         ];
 
-        // Lógica de Niebla de Guerra
+        let villagers = [
+            { id: 1, cityId: 1, x: 20, y: 20, role: "leñador", age: 20, maxAge: 50, retiring: false, manualOverride: false, visionRange: 6 },
+            { id: 2, cityId: 1, x: 21, y: 20, role: "minero", age: 25, maxAge: 50, retiring: false, manualOverride: false, visionRange: 6 },
+            { id: 3, cityId: 1, x: 19, y: 20, role: "agricultor", age: 18, maxAge: 50, retiring: false, manualOverride: false, visionRange: 6 }
+        ];
+
+        let mapResources = [];
+
+        function generateWorld() {
+            for (let y = 0; y < MAP_SIZE; y++) {
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    if (y < 6) terrainMap[y][x] = 3; // Tundra
+                    else if (x < 4 || x > MAP_SIZE - 5 || y > MAP_SIZE - 5) terrainMap[y][x] = 7; // Mar
+                    else if (x === 4 || x === MAP_SIZE - 5 || y === 5 || y === MAP_SIZE - 5) terrainMap[y][x] = 4; // Playa
+                    else if (x > 25 && y > 15 && y < 25) terrainMap[y][x] = 2; // Desierto
+                    else if (y > 10 && y < 18 && x > 8 && x < 18) terrainMap[y][x] = 8; // Montañas
+                    else if (x === 15) terrainMap[y][x] = 5; // Río
+                    else if (x >= 22 && x <= 25 && y >= 8 && y <= 11) terrainMap[y][x] = 6; // Lago
+                    else if (x > 5 && x < 15 && y > 22 && y < 32) terrainMap[y][x] = 1; // Bosque
+                    else terrainMap[y][x] = 0; // Llanura
+                }
+            }
+            populateResources();
+        }
+
+        function populateResources() {
+            mapResources = [];
+            for (let y = 0; y < MAP_SIZE; y++) {
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    let t = terrainMap[y][x];
+                    if (t === 1 && Math.random() < 0.45) mapResources.push({x, y, type: 'arbol'});
+                    if (t === 1 && Math.random() < 0.25) mapResources.push({x, y, type: 'fruta'});
+                    if (t === 8 && Math.random() < 0.35) mapResources.push({x, y, type: 'piedra'});
+                    if (t === 8 && Math.random() < 0.2) mapResources.push({x, y, type: 'mineral'});
+                    if (t === 8 && Math.random() < 0.1) mapResources.push({x, y, type: 'oro'});
+                    if (t === 2 && Math.random() < 0.12) mapResources.push({x, y, type: 'oro'});
+                    if (t === 3 && Math.random() < 0.25) mapResources.push({x, y, type: 'animal'});
+                    if (t === 0 && Math.random() < 0.18) mapResources.push({x, y, type: 'animal'});
+                    if (t === 5 || t === 6) {
+                        if (Math.random() < 0.35) mapResources.push({x, y, type: 'agua'});
+                        if (Math.random() < 0.25) mapResources.push({x, y, type: 'pez'});
+                    }
+                }
+            }
+        }
+
+        generateWorld();
+        let globalAdvice = "Disfruta del motor gráfico en alta resolución vectorial y efectos de iluminación mejorados.";
+
+        window.foundNewCity = function() {
+            if (resources.wood >= 50 && resources.gold >= 50) {
+                resources.wood -= 50;
+                resources.gold -= 50;
+                let newCityId = cities.length + 1;
+                let newX = Math.floor(Math.random() * 20) + 10;
+                let newY = Math.floor(Math.random() * 20) + 10;
+                
+                cities.push({
+                    id: newCityId,
+                    name: `Colonia #${newCityId}`,
+                    x: newX,
+                    y: newY,
+                    relation: "Neutral",
+                    status: "Estable"
+                });
+
+                villagers.push({
+                    id: villagers.length + 1,
+                    cityId: newCityId,
+                    x: newX,
+                    y: newY,
+                    role: "constructor",
+                    age: 20,
+                    maxAge: 50,
+                    retiring: false,
+                    manualOverride: false,
+                    visionRange: 6
+                });
+                updateCityUI();
+            } else {
+                alert("Se requieren 50 de Madera y 50 de Oro.");
+            }
+        }
+
+        function runAIIntellectAndDiplomacy() {
+            if (cities.length > 1) {
+                let targetCity = cities[Math.floor(Math.random() * cities.length)];
+                let ev = Math.random();
+                if (ev < 0.3) {
+                    targetCity.relation = "Rebelión Interna";
+                    targetCity.status = "Conflicto";
+                    globalAdvice = `¡Alerta! ${targetCity.name} sufre una revuelta civil.`;
+                } else {
+                    targetCity.relation = "Comercio Activo";
+                    targetCity.status = "Próspera";
+                    resources.gold += 12;
+                    globalAdvice = `Comercio próspero con ${targetCity.name}.`;
+                }
+                updateCityUI();
+            }
+            document.getElementById("adviceBox").innerHTML = `<strong>Consejo del Imperio:</strong> ${globalAdvice}`;
+        }
+
+        function autoAssignRoles() {
+            villagers.forEach(v => {
+                if (!v.retiring && !v.manualOverride) {
+                    if (resources.food < 50) v.role = "agricultor";
+                    else if (resources.wood < 50) v.role = "leñador";
+                    else {
+                        let index = (v.id + currentYear) % ROLES.length;
+                        v.role = ROLES[index];
+                    }
+                }
+            });
+        }
+
         function updateVision() {
-            for(let y = 0; y < ROWS; y++) {
-                for(let x = 0; x < COLS; x++) {
+            for(let y = 0; y < MAP_SIZE; y++) {
+                for(let x = 0; x < MAP_SIZE; x++) {
                     if(fogMap[y][x] === 2) fogMap[y][x] = 1;
                 }
             }
             
-            units.forEach(u => {
-                let range = u.visionRange;
+            villagers.forEach(v => {
+                let range = v.visionRange;
                 for(let dy = -range; dy <= range; dy++) {
                     for(let dx = -range; dx <= range; dx++) {
-                        let ny = u.y + dy;
-                        let nx = u.x + dx;
-                        if(ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
+                        let ny = v.y + dy;
+                        let nx = v.x + dx;
+                        if(ny >= 0 && ny < MAP_SIZE && nx >= 0 && nx < MAP_SIZE) {
                             fogMap[ny][nx] = 2;
                         }
                     }
@@ -71,62 +374,266 @@
             });
         }
 
-        // Sistema Económico
         function updateEconomy() {
-            let maintenanceCost = units.length * 0.05;
-            resources.gold = Math.max(0, resources.gold - maintenanceCost);
-            
-            if(resources.woodRate > 0.2) {
-                resources.woodRate *= 0.99;
-            }
-
-            // Actualizar interfaz HTML
-            document.getElementById("goldVal").innerText = resources.gold.toFixed(1);
-            document.getElementById("woodVal").innerText = resources.wood.toFixed(1);
-        }
-
-        // Bucle de Renderizado
-        function render() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Dibujar terreno base simulado
-            ctx.fillStyle = "#3a3a3a";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Dibujar Unidades
-            units.forEach(u => {
-                ctx.fillStyle = "#00ffcc";
-                ctx.fillRect(u.x * CELL_SIZE, u.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            villagers.forEach(v => {
+                if (!v.retiring) {
+                    if(v.role === "leñador") resources.wood += 0.6;
+                    if(v.role === "minero") { resources.gold += 0.2; resources.stone += 0.4; resources.mineral += 0.2; }
+                    if(v.role === "agricultor" || v.role === "cazador" || v.role === "pescador") resources.food += 0.6;
+                }
             });
 
-            // Dibujar Niebla de Guerra
-            for(let y = 0; y < ROWS; y++) {
-                for(let x = 0; x < COLS; x++) {
+            document.getElementById("goldVal").innerText = resources.gold.toFixed(1);
+            document.getElementById("woodVal").innerText = resources.wood.toFixed(1);
+            document.getElementById("foodVal").innerText = resources.food.toFixed(1);
+            document.getElementById("stoneVal").innerText = resources.stone.toFixed(1);
+            document.getElementById("mineralVal").innerText = resources.mineral.toFixed(1);
+        }
+
+        function updateVillagerUI() {
+            const panel = document.getElementById("villagerControls");
+            let html = "<strong>Aldeanos</strong>";
+            villagers.forEach(v => {
+                html += `<div style="margin-top:2px;">#${v.id} <b>${v.role.toUpperCase()}</b> (${v.age}a) <button class="btn-sm" onclick="toggleManualRole(${v.id})">Rol</button></div>`;
+            });
+            panel.innerHTML = html;
+        }
+
+        function updateCityUI() {
+            const panel = document.getElementById("cityControls");
+            let html = "<strong>Centros Urbanos</strong>";
+            cities.forEach(c => {
+                html += `<div style="margin-top:2px;">📍 <b>${c.name}</b> (${c.status})</div>`;
+            });
+            panel.innerHTML = html;
+        }
+
+        window.toggleManualRole = function(id) {
+            let v = villagers.find(item => item.id === id);
+            if(v && !v.retiring) {
+                v.manualOverride = true; 
+                let currentIndex = ROLES.indexOf(v.role);
+                v.role = ROLES[(currentIndex + 1) % ROLES.length];
+                updateVillagerUI();
+            }
+        }
+
+        function handleRetirementAndMovement() {
+            villagers.forEach(v => {
+                if (v.retiring) {
+                    if (v.x < CEMETERY.x) v.x++;
+                    else if (v.x > CEMETERY.x) v.x--;
+                    if (v.y < CEMETERY.y) v.y++;
+                    else if (v.y > CEMETERY.y) v.y--;
+
+                    if (v.x === CEMETERY.x && v.y === CEMETERY.y) {
+                        graves.push({ x: v.x, y: v.y });
+                        v.dead = true;
+                    }
+                }
+            });
+            villagers = villagers.filter(v => !v.dead);
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.translate(panX, panY);
+            ctx.scale(zoomLevel, zoomLevel);
+
+            // Renderizado de biomas con gradientes y texturas sutiles HD
+            for (let y = 0; y < MAP_SIZE; y++) {
+                for (let x = 0; x < MAP_SIZE; x++) {
+                    let t = terrainMap[y][x];
+                    let px = x * CELL_SIZE;
+                    let py = y * CELL_SIZE;
+
+                    if (t === 0) ctx.fillStyle = "#253b25"; // Llanura rica
+                    else if (t === 1) ctx.fillStyle = "#152d15"; // Bosque denso
+                    else if (t === 2) ctx.fillStyle = "#b5a375"; // Desierto cálido
+                    else if (t === 3) ctx.fillStyle = "#c5d7f5"; // Tundra gélida
+                    else if (t === 4) ctx.fillStyle = "#d4c887"; // Playa de arena fina
+                    else if (t === 5) ctx.fillStyle = "#2980b9"; // Río dinámico
+                    else if (t === 6) ctx.fillStyle = "#1f618d"; // Lago profundo
+                    else if (t === 7) ctx.fillStyle = "#123048"; // Mar abierto
+                    else if (t === 8) ctx.fillStyle = "#6c7a89"; // Montañas rocosas
+
+                    ctx.fillRect(px, py, CELL_SIZE, CELL_SIZE);
+
+                    // Detalle de relieve interno en celdas para mayor realismo visual
+                    ctx.strokeStyle = "rgba(0,0,0,0.15)";
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(px, py, CELL_SIZE, CELL_SIZE);
+                }
+            }
+
+            // Dibujar Recursos en Alta Definición (Iconografía vectorial detallada)
+            mapResources.forEach(res => {
+                let rx = (res.x + 0.5) * CELL_SIZE;
+                let ry = (res.y + 0.5) * CELL_SIZE;
+                ctx.save();
+                if (res.type === 'arbol') {
+                    ctx.fillStyle = "#2ecc71";
+                    ctx.beginPath(); ctx.arc(rx, ry - 3, 8, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "#27ae60";
+                    ctx.beginPath(); ctx.arc(rx, ry + 2, 10, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = "#795548";
+                    ctx.fillRect(rx - 2, ry + 6, 4, 6);
+                } else if (res.type === 'piedra') {
+                    ctx.fillStyle = "#95a5a6";
+                    ctx.beginPath(); ctx.arc(rx - 3, ry + 2, 6, 0, Math.PI*2); ctx.arc(rx + 4, ry, 7, 0, Math.PI*2); ctx.fill();
+                } else if (res.type === 'oro') {
+                    ctx.fillStyle = "#f1c40f";
+                    ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 6;
+                    ctx.beginPath(); ctx.arc(rx, ry, 6, 0, Math.PI*2); ctx.fill();
+                } else if (res.type === 'mineral') {
+                    ctx.fillStyle = "#34495e";
+                    ctx.fillRect(rx - 6, ry - 6, 12, 12);
+                    ctx.fillStyle = "#1abc9c";
+                    ctx.fillRect(rx - 3, ry - 3, 6, 6);
+                } else if (res.type === 'fruta') {
+                    ctx.fillStyle = "#e74c3c";
+                    ctx.beginPath(); ctx.arc(rx - 4, ry, 5, 0, Math.PI*2); ctx.arc(rx + 4, ry - 2, 5, 0, Math.PI*2); ctx.fill();
+                } else if (res.type === 'animal') {
+                    ctx.fillStyle = "#d35400";
+                    ctx.beginPath(); ctx.arc(rx, ry, 7, 0, Math.PI*2); ctx.fill();
+                } else if (res.type === 'pez') {
+                    ctx.fillStyle = "#00bcd4";
+                    ctx.beginPath(); ctx.ellipse(rx, ry, 8, 4, Math.PI / 4, 0, Math.PI * 2); ctx.fill();
+                } else if (res.type === 'agua') {
+                    ctx.fillStyle = "#81d4fa";
+                    ctx.fillRect(rx - 5, ry - 5, 10, 10);
+                }
+                ctx.restore();
+            });
+
+            // Ciudades (Renderizado de alta calidad con halo luminoso)
+            cities.forEach(c => {
+                let cx = (c.x + 0.5) * CELL_SIZE;
+                let cy = (c.y + 0.5) * CELL_SIZE;
+                ctx.save();
+                ctx.shadowColor = "#00ffcc";
+                ctx.shadowBlur = 12;
+                ctx.fillStyle = "#8e44ad";
+                ctx.fillRect(c.x * CELL_SIZE + 4, c.y * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+                ctx.strokeStyle = "#ffffff";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(c.x * CELL_SIZE + 4, c.y * CELL_SIZE + 4, CELL_SIZE - 8, CELL_SIZE - 8);
+                ctx.restore();
+            });
+
+            // Cementerio y lápidas detalladas
+            ctx.fillStyle = "#4a235a";
+            ctx.fillRect(CEMETERY.x * CELL_SIZE + 2, CEMETERY.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+            graves.forEach(g => {
+                ctx.fillStyle = "#ecf0f1";
+                ctx.fillRect(g.x * CELL_SIZE + 10, g.y * CELL_SIZE + 12, CELL_SIZE - 20, CELL_SIZE - 16);
+                ctx.fillStyle = "#7f8c8d";
+                ctx.fillRect(g.x * CELL_SIZE + 16, g.y * CELL_SIZE + 8, 8, 6);
+            });
+
+            // Aldeanos (Avatares circulares HD con brillo de rol)
+            villagers.forEach(v => {
+                let vx = (v.x + 0.5) * CELL_SIZE;
+                let vy = (v.y + 0.5) * CELL_SIZE;
+                ctx.save();
+                ctx.shadowColor = v.retiring ? "#ff9900" : "#00ffcc";
+                ctx.shadowBlur = 8;
+                ctx.fillStyle = v.retiring ? "#ff9900" : "#00ffcc";
+                ctx.beginPath();
+                ctx.arc(vx, vy, CELL_SIZE * 0.32, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = "#111";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.restore();
+            });
+
+            // Capa de penumbra suave para zonas no iluminadas
+            for(let y = 0; y < MAP_SIZE; y++) {
+                for(let x = 0; x < MAP_SIZE; x++) {
                     if(fogMap[y][x] === 0) {
-                        ctx.fillStyle = "black";
+                        ctx.fillStyle = "rgba(5, 5, 8, 0.8)";
                         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
                     } else if(fogMap[y][x] === 1) {
-                        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+                        ctx.fillStyle = "rgba(5, 5, 8, 0.38)";
                         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
                     }
                 }
             }
+
+            ctx.restore();
         }
 
-        // Movimiento simple de prueba para la unidad con las flechas
-        window.addEventListener("keydown", (e) => {
-            if(e.key === "ArrowUp" && units[0].y > 0) units[0].y--;
-            if(e.key === "ArrowDown" && units[0].y < ROWS - 1) units[0].y++;
-            if(e.key === "ArrowLeft" && units[0].x > 0) units[0].x--;
-            if(e.key === "ArrowRight" && units[0].x < COLS - 1) units[0].x++;
+        window.zoomIn = function() { zoomLevel = Math.min(zoomLevel + 0.25, 2.5); }
+        window.zoomOut = function() { zoomLevel = Math.max(zoomLevel - 0.25, 0.6); }
+
+        const container = document.getElementById("canvasContainer");
+        container.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            startX = e.clientX - panX;
+            startY = e.clientY - panY;
+            container.style.cursor = "grabbing";
+        });
+        window.addEventListener("mousemove", (e) => {
+            if (!isDragging) return;
+            panX = e.clientX - startX;
+            panY = e.clientY - startY;
+        });
+        window.addEventListener("mouseup", () => {
+            isDragging = false;
+            container.style.cursor = "grab";
         });
 
-        // Ciclos principales del juego
+        window.toggleUI = function() {
+            const dashboard = document.getElementById("mainDashboard");
+            const actionContainer = document.getElementById("actionContainer");
+            const panelsWrapper = document.getElementById("panelsWrapper");
+            const btn = document.getElementById("toggleUiBtn");
+
+            if (dashboard.style.display === "none") {
+                dashboard.style.display = "flex";
+                actionContainer.style.display = "flex";
+                panelsWrapper.style.display = "flex";
+                btn.innerText = "Ocultar Menú";
+            } else {
+                dashboard.style.display = "none";
+                actionContainer.style.display = "none";
+                panelsWrapper.style.display = "none";
+                btn.innerText = "Mostrar Menú";
+            }
+        }
+
         setInterval(() => {
+            currentYear++;
+            document.getElementById("yearVal").innerText = currentYear;
+
+            villagers.forEach(v => {
+                v.age++;
+                if (v.age >= v.maxAge) v.retiring = true;
+            });
+            updateVillagerUI();
+
+            if (currentYear % 10 === 0) {
+                populateResources();
+                globalAdvice = `¡Ciclo decenal cumplido! Recursos naturales completamente renovados en alta calidad.`;
+            }
+
+            if (cities.length > 1) {
+                runAIIntellectAndDiplomacy();
+            }
+        }, 300000); 
+
+        updateVillagerUI();
+        updateCityUI();
+
+        setInterval(() => {
+            autoAssignRoles();
+            handleRetirementAndMovement();
             updateVision();
             updateEconomy();
             render();
-        }, 100);
+        }, 1000);
     </script>
 </body>
 </html>
