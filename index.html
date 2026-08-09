@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Imperio - Evolución</title>
+    <title>WordZeit - Evolución</title>
     <style>
         :root {
-            /* Mantenemos tu paleta de colores establecida */
             --bg-color: #121212;
             --text-color: #ffffff;
             --accent-color: #00ff88;
@@ -24,7 +23,7 @@
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            overflow: hidden; /* Evita que la pantalla salte al tocar en el celular */
+            overflow: hidden; 
         }
 
         h1 {
@@ -50,7 +49,7 @@
             border: 2px solid #333;
             border-radius: 4px;
             display: block;
-            image-rendering: pixelated; /* Mantiene la estética Pixel Art */
+            image-rendering: pixelated; 
         }
 
         #ui-panel {
@@ -63,80 +62,183 @@
 </head>
 <body>
 
-    <h1>Imperio</h1>
+    <h1>WORDZEIT</h1>
     <div id="game-container">
-        <!-- Lienzo optimizado para el ancho de un celular estándar (320x320) -->
         <canvas id="gameCanvas" width="320" height="320"></canvas>
         <div id="ui-panel">
-            Mundo generado. Día 1.
+            Edad de Piedra. Población: 2
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓN BASE ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const uiPanel = document.getElementById('ui-panel');
 
-        // Tamaño de cada "pixel" o bloque en el mapa (20x20 bloques en total)
         const TILE_SIZE = 16; 
         const COLS = canvas.width / TILE_SIZE;
         const ROWS = canvas.height / TILE_SIZE;
 
-        // Paleta de colores del terreno (Estilo Pixel Art)
         const TERRAIN_COLORS = {
-            0: '#1e3f5a', // Agua profunda (Mares)
-            1: '#2a5b84', // Agua poco profunda (Ríos/Playas)
-            2: '#c2b280', // Arena/Desierto
-            3: '#2d5a27', // Pasto/Llanura
-            4: '#1b3b18', // Bosque denso / Selva
-            5: '#5c5c5c'  // Montaña/Piedra
+            0: '#1e3f5a', // Agua 
+            1: '#c2b280', // Arena/Playa
+            2: '#2d5a27', // Pasto/Llanura
+            3: '#1b3b18', // Bosque denso
+            4: '#5c5c5c'  // Montaña
         };
 
-        // Matriz que guardará los datos del mapa
         let map = [];
+        let avatars = [];
 
-        // --- FUNCIONES DEL MUNDO ---
-
+        // --- 1. GENERAR MAPA CON CONTINENTES ---
         function generateMap() {
             map = [];
+            // Llenado aleatorio inicial
             for (let y = 0; y < ROWS; y++) {
                 let row = [];
                 for (let x = 0; x < COLS; x++) {
-                    // Generación aleatoria básica para iniciar (0 al 5)
-                    let randomTile = Math.floor(Math.random() * 6);
-                    row.push(randomTile);
+                    let rand = Math.random();
+                    let tile = rand < 0.45 ? 0 : (rand < 0.75 ? 2 : (rand < 0.90 ? 3 : 4));
+                    row.push(tile);
                 }
                 map.push(row);
             }
+
+            // Autómata celular para suavizar continentes
+            for(let p = 0; p < 3; p++) {
+                let newMap = [];
+                for (let y = 0; y < ROWS; y++) {
+                    let newRow = [];
+                    for (let x = 0; x < COLS; x++) {
+                        newRow.push(getMostCommonNeighbor(x, y));
+                    }
+                    newMap.push(newRow);
+                }
+                map = newMap;
+            }
+
+            // Agregar playas de arena
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    if (map[y][x] === 2 && hasNeighbor(x, y, 0)) {
+                        map[y][x] = 1;
+                    }
+                }
+            }
         }
 
+        function getMostCommonNeighbor(x, y) {
+            let counts = {0:0, 1:0, 2:0, 3:0, 4:0};
+            for(let dy = -1; dy <= 1; dy++) {
+                for(let dx = -1; dx <= 1; dx++) {
+                    let nx = x + dx;
+                    let ny = y + dy;
+                    if(nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                        counts[map[ny][nx]]++;
+                    }
+                }
+            }
+            let maxCount = -1;
+            let bestTile = map[y][x];
+            for(let tile in counts) {
+                if(counts[tile] > maxCount) {
+                    maxCount = counts[tile];
+                    bestTile = parseInt(tile);
+                }
+            }
+            return bestTile;
+        }
+
+        function hasNeighbor(x, y, targetTile) {
+            for(let dy = -1; dy <= 1; dy++) {
+                for(let dx = -1; dx <= 1; dx++) {
+                    let nx = x + dx;
+                    let ny = y + dy;
+                    if(nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+                        if(map[ny][nx] === targetTile && (dx !== 0 || dy !== 0)) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        // --- 2. CREAR A LOS AVATARES ---
+        function spawnAvatars() {
+            avatars = [];
+            let spawned = 0;
+            // Buscamos un bloque de pasto (2) para que nazcan seguros
+            while(spawned < 2) {
+                let rx = Math.floor(Math.random() * COLS);
+                let ry = Math.floor(Math.random() * ROWS);
+                if (map[ry][rx] === 2) {
+                    avatars.push({
+                        x: rx,
+                        y: ry,
+                        color: spawned === 0 ? '#ff007f' : '#00bfff', // Rosa y Azul
+                        moveTimer: 0
+                    });
+                    spawned++;
+                }
+            }
+        }
+
+        // --- 3. DIBUJAR MAPA Y AVATARES ---
         function drawMap() {
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
-                    let tileType = map[y][x];
-                    ctx.fillStyle = TERRAIN_COLORS[tileType];
+                    ctx.fillStyle = TERRAIN_COLORS[map[y][x]];
                     ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
                 }
             }
         }
 
-        // --- BUCLE PRINCIPAL (GAME LOOP) ---
+        function drawAvatars() {
+            for (let i = 0; i < avatars.length; i++) {
+                let av = avatars[i];
+                ctx.fillStyle = av.color;
+                // Dibujamos al avatar un poco más pequeño que el bloque del terreno
+                ctx.fillRect(av.x * TILE_SIZE + 4, av.y * TILE_SIZE + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+            }
+        }
+
+        // --- 4. LÓGICA DE MOVIMIENTO ---
+        function updateAvatars() {
+            for (let i = 0; i < avatars.length; i++) {
+                let av = avatars[i];
+                av.moveTimer++;
+                
+                // Se mueven aleatoriamente cada 60 frames (aprox 1 segundo)
+                if (av.moveTimer > 60) {
+                    let dx = Math.floor(Math.random() * 3) - 1; 
+                    let dy = Math.floor(Math.random() * 3) - 1;
+                    
+                    let nx = av.x + dx;
+                    let ny = av.y + dy;
+                    
+                    // Condición: No salirse del mapa y no caminar sobre el agua (0)
+                    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && map[ny][nx] !== 0) {
+                        av.x = nx;
+                        av.y = ny;
+                    }
+                    av.moveTimer = 0;
+                }
+            }
+        }
+
+        // --- BUCLE PRINCIPAL ---
         function gameLoop() {
-            // 1. Limpiar pantalla en cada fotograma
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // 2. Dibujar el mapa
+            
+            updateAvatars();
             drawMap();
-
-            // 3. (Aquí dibujaremos a los avatares más adelante)
-
-            // 4. Repetir el bucle infinitamente
+            drawAvatars();
+            
             requestAnimationFrame(gameLoop);
         }
 
-        // --- ARRANQUE DEL JUEGO ---
+        // --- INICIALIZACIÓN ---
         generateMap();
+        spawnAvatars();
         gameLoop();
     </script>
 </body>
