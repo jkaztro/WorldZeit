@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WorldZeit - Civilización</title>
+    <title>WorldZeit - Civilización HD</title>
     <style>
         :root {
-            --bg-color: #121212;
-            --text-color: #ffffff;
+            --bg-color: #0f1115;
+            --text-color: #f0f2f5;
             --accent-color: #00ff88;
-            --danger-color: #ff3333;
-            --panel-bg: #1e1e1e;
-            --btn-bg: #2a2a2a;
+            --danger-color: #ff4757;
+            --panel-bg: #1a1d24;
+            --btn-bg: #262a33;
+            --btn-hover: #343a46;
         }
 
         body {
@@ -30,38 +31,44 @@
 
         h1 {
             color: var(--accent-color);
-            font-size: 19px;
-            margin: 3px 0;
+            font-size: 20px;
+            margin: 4px 0;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
         }
 
         #game-container {
             background-color: var(--panel-bg);
-            padding: 6px;
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6);
             display: flex;
             flex-direction: column;
             align-items: center;
-            max-width: 340px;
+            max-width: 520px;
+            border: 1px solid #2f3542;
         }
 
         canvas {
             background-color: #000;
-            border: 2px solid #333;
-            border-radius: 4px;
+            border: 2px solid #485460;
+            border-radius: 6px;
             display: block;
-            image-rendering: pixelated; 
+            image-rendering: auto; /* Activamos suavizado de alta calidad */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
         }
 
         #ui-panel {
-            margin-top: 4px;
+            margin-top: 8px;
             text-align: center;
-            font-size: 10px;
-            font-weight: bold;
-            line-height: 1.2;
+            font-size: 11px;
+            font-weight: 600;
+            line-height: 1.4;
             width: 100%;
+            background: rgba(0,0,0,0.2);
+            padding: 6px;
+            border-radius: 6px;
         }
 
         .stat-highlight {
@@ -80,16 +87,16 @@
         }
 
         #control-panels {
-            margin-top: 4px;
+            margin-top: 6px;
             display: flex;
             flex-direction: column;
-            gap: 3px;
+            gap: 4px;
             width: 100%;
         }
 
         .button-row {
             display: flex;
-            gap: 3px;
+            gap: 4px;
             justify-content: center;
             flex-wrap: wrap;
         }
@@ -97,13 +104,20 @@
         .action-btn {
             background-color: var(--btn-bg);
             color: var(--text-color);
-            border: 1px solid #444;
-            padding: 3px 5px;
-            border-radius: 4px;
-            font-size: 8px;
+            border: 1px solid #485460;
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 9px;
             cursor: pointer;
             font-weight: bold;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .action-btn:hover {
+            background-color: var(--btn-hover);
+            border-color: var(--accent-color);
+            transform: translateY(-1px);
         }
 
         .action-btn.unlocked {
@@ -115,12 +129,13 @@
 </head>
 <body>
 
-    <h1>WORLDZEIT</h1>
+    <h1>WORLDZEIT HD</h1>
     <div id="game-container">
-        <canvas id="gameCanvas" width="320" height="320"></canvas>
+        <!-- Duplicamos la resolución del canvas y tamaño lógico para alta nitidez -->
+        <canvas id="gameCanvas" width="480" height="480"></canvas>
         <div id="ui-panel">
-            Era: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span> | Pop: <span id="lbl-pop">5</span><br>
-            🪵 M: <span id="lbl-wood">500</span> | 🪨 P: <span id="lbl-stone">300</span> | 🪙 O: <span id="lbl-gold">200</span><br>
+            Era: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span> | Pop: <span id="lbl-pop">6</span><br>
+            🪵 M: <span id="lbl-wood">500</span> | 🪨 P: <span id="lbl-stone">300</span> | 🪙 O: <span id="lbl-gold">200</span> | 🌾 A: <span id="lbl-food">100</span><br>
             Misión: <span class="stat-highlight" id="lbl-mission">Crear C.Urbano y 2 Cabañas</span><br>
             Estado: <span class="stat-highlight" id="lbl-status">Paz en el territorio</span>
         </div>
@@ -161,16 +176,17 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
-        const TILE_SIZE = 16; 
-        const COLS = canvas.width / TILE_SIZE;
-        const ROWS = canvas.height / TILE_SIZE;
+        const TILE_SIZE = 24; // Incrementado para mayor detalle visual y definición
+        const COLS = canvas.width / TILE_SIZE; // 20 columnas
+        const ROWS = canvas.height / TILE_SIZE; // 20 filas
 
+        // Paleta de colores mejorada con transiciones sutiles e iluminación HD
         const TERRAIN_COLORS = {
-            0: '#1e3f5a', // Agua 
-            1: '#c2b280', // Arena/Playa
-            2: '#2d5a27', // Pasto/Llanura
-            3: '#1b3b18', // Bosque denso
-            4: '#5c5c5c'  // Montaña
+            0: '#1e40af', // Agua profunda de alta calidad
+            1: '#d4b483', // Arena dorada costera
+            2: '#38a169', // Pasto exuberante
+            3: '#22543d', // Bosque denso profundo
+            4: '#4a5568'  // Montaña rocosa texturizada
         };
 
         let map = [];
@@ -184,6 +200,7 @@
             wood: 500,
             stone: 300,
             gold: 200,
+            food: 100,
             pe: 0
         };
 
@@ -212,14 +229,14 @@
                     let rand = Math.random();
                     let tile = rand < 0.20 ? 0 : (rand < 0.70 ? 2 : (rand < 0.90 ? 3 : 4));
                     row.push(tile);
-                    expRow.push(false); // Todo comienza oculto (niebla de guerra)
+                    expRow.push(false);
 
                     if (tile === 3 && Math.random() < 0.65) {
-                        resources[`${x},${y}`] = 'wood';
+                        resources[`${x},${y}`] = { type: 'wood', amount: 100, regenTimer: 0 };
                     } else if (tile === 4 && Math.random() < 0.70) {
-                        resources[`${x},${y}`] = 'stone';
+                        resources[`${x},${y}`] = { type: 'stone', amount: 100 };
                     } else if (tile === 2 && Math.random() < 0.12) {
-                        resources[`${x},${y}`] = 'gold';
+                        resources[`${x},${y}`] = { type: 'gold', amount: 100 };
                     }
                 }
                 map.push(row);
@@ -291,21 +308,20 @@
                 if (map[ry][rx] === 2 || map[ry][rx] === 1) {
                     let color = forcedColor;
                     if (!color) {
-                        if (role === 'villager_male') color = '#00bfff';       // 1. Aldeanos azules
-                        else if (role === 'villager_female') color = '#ff007f'; // 2. Aldeanas rosado
-                        else if (role === 'explorer') color = '#00ff66';        // 3. Exploradores verdes
-                        else if (role === 'infantry') color = '#2e7d32';        // 4. Infantería verde
-                        else if (role === 'cavalry') color = '#9e9e9e';         // 5. Caballería gris
+                        if (role === 'villager_male') color = '#38bdf8';       
+                        else if (role === 'villager_female') color = '#f472b6'; 
+                        else if (role === 'explorer') color = '#4ade80';        
+                        else if (role === 'infantry') color = '#16a34a';        
+                        else if (role === 'cavalry') color = '#94a3b8';         
                     }
 
-                    // Tareas específicas para aldeanos (madera, piedra/minería, granja/alimento)
                     let task = specificTask;
                     if (!task && (role === 'villager_male' || role === 'villager_female')) {
                         let tasksPool = ['wood', 'stone', 'farm'];
                         task = tasksPool[Math.floor(Math.random() * tasksPool.length)];
                     }
 
-                    avatars.push({
+                    let unit = {
                         x: rx,
                         y: ry,
                         role: role,
@@ -313,7 +329,16 @@
                         task: task,
                         moveTimer: 0,
                         speed: role === 'cavalry' ? 20 : (role === 'explorer' ? 25 : 35)
-                    });
+                    };
+
+                    if (task === 'farm') {
+                        let fKey = `${rx},${ry}`;
+                        if (!structures[fKey] && !resources[fKey]) {
+                            structures[fKey] = { type: 'farm', amount: 100 };
+                        }
+                    }
+
+                    avatars.push(unit);
                     spawned = true;
                 }
                 attempts++;
@@ -343,7 +368,7 @@
                     x: bx,
                     y: by,
                     moveTimer: 0,
-                    color: '#ff3333'
+                    color: '#ef4444'
                 });
             }
         }
@@ -477,7 +502,7 @@
         function tradeResources(type) {
             let hasMarket = false;
             for (let k in structures) {
-                if (structures[k] === 'market') hasMarket = true;
+                if (structures[k] === 'market' || structures[k]?.type === 'market') hasMarket = true;
             }
             if (!hasMarket) {
                 alert("¡Necesitas construir un Mercado (⚖️) para comerciar!");
@@ -501,7 +526,11 @@
                 let ry = Math.floor(Math.random() * ROWS);
                 let key = `${rx},${ry}`;
                 if (map[ry][rx] === 2 && !resources[key] && !structures[key]) {
-                    structures[key] = structType;
+                    if (structType === 'farm') {
+                        structures[key] = { type: 'farm', amount: 100 };
+                    } else {
+                        structures[key] = structType;
+                    }
                     break;
                 }
             }
@@ -510,49 +539,77 @@
         function drawMap() {
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
+                    let px = x * TILE_SIZE;
+                    let py = y * TILE_SIZE;
+
                     if (!explored[y][x]) {
-                        ctx.fillStyle = '#0a0a0a'; // Niebla de guerra profunda
-                        ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#090a0f'; 
+                        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
                         continue;
                     }
 
+                    // Renderizado HD del terreno con gradientes suaves / estilo plano elegante
                     ctx.fillStyle = TERRAIN_COLORS[map[y][x]];
-                    ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+
+                    // Pequeña cuadrícula sutil HD para mejorar la definición visual del terreno
+                    ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                    ctx.strokeRect(px, py, TILE_SIZE, TILE_SIZE);
 
                     let key = `${x},${y}`;
-                    if (structures[key]) {
-                        let st = structures[key];
-                        if (st === 'towncenter') {
-                            ctx.fillStyle = '#ffcc00';
-                            ctx.fillRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, 14, 14);
-                        } else if (st === 'hut') {
-                            ctx.fillStyle = '#b5651d';
-                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
-                        } else if (st === 'farm') {
-                            ctx.fillStyle = '#ffeb3b';
-                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
-                        } else if (st === 'market') {
-                            ctx.fillStyle = '#ff9800';
-                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
-                        } else if (st === 'wall') {
-                            ctx.fillStyle = '#787878';
-                            ctx.fillRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, 14, 14);
-                        } else if (st === 'tower') {
-                            ctx.fillStyle = '#a9a9a9';
-                            ctx.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 4, 8, 8);
-                            ctx.fillStyle = '#ff0000';
-                            ctx.fillRect(x * TILE_SIZE + 7, y * TILE_SIZE + 7, 2, 2);
+                    let st = structures[key];
+                    if (st) {
+                        let stType = typeof st === 'object' ? st.type : st;
+                        if (stType === 'towncenter') {
+                            ctx.fillStyle = '#fbbf24';
+                            ctx.beginPath();
+                            ctx.roundRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6, 4);
+                            ctx.fill();
+                            ctx.strokeStyle = '#d97706';
+                            ctx.stroke();
+                        } else if (stType === 'hut') {
+                            ctx.fillStyle = '#b45309';
+                            ctx.beginPath();
+                            ctx.roundRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 8, 3);
+                            ctx.fill();
+                        } else if (stType === 'farm') {
+                            ctx.fillStyle = '#fde047';
+                            ctx.fillRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+                            ctx.strokeStyle = '#ca8a04';
+                            ctx.strokeRect(px + 3, py + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+                        } else if (stType === 'market') {
+                            ctx.fillStyle = '#f97316';
+                            ctx.beginPath();
+                            ctx.roundRect(px + 4, py + 4, TILE_SIZE - 8, TILE_SIZE - 8, 3);
+                            ctx.fill();
+                        } else if (stType === 'wall') {
+                            ctx.fillStyle = '#64748b';
+                            ctx.fillRect(px + 2, py + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                        } else if (stType === 'tower') {
+                            ctx.fillStyle = '#94a3b8';
+                            ctx.fillRect(px + 6, py + 6, TILE_SIZE - 12, TILE_SIZE - 12);
+                            ctx.fillStyle = '#ef4444';
+                            ctx.fillRect(px + 10, py + 10, 4, 4);
                         }
                     } else if (resources[key]) {
-                        if (resources[key] === 'wood') {
-                            ctx.fillStyle = '#8b5a2b';
-                            ctx.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 5, 6, 6);
-                        } else if (resources[key] === 'stone') {
-                            ctx.fillStyle = '#aaaaaa';
-                            ctx.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 4, 8, 8);
-                        } else if (resources[key] === 'gold') {
-                            ctx.fillStyle = '#ffd700';
-                            ctx.fillRect(x * TILE_SIZE + 6, y * TILE_SIZE + 6, 4, 4);
+                        let res = resources[key];
+                        if (res.type === 'wood') {
+                            ctx.fillStyle = '#14532d';
+                            ctx.beginPath();
+                            ctx.arc(px + TILE_SIZE/2, py + TILE_SIZE/2, TILE_SIZE/3, 0, Math.PI * 2);
+                            ctx.fill();
+                        } else if (res.type === 'stone') {
+                            ctx.fillStyle = '#cbd5e1';
+                            ctx.beginPath();
+                            ctx.roundRect(px + 5, py + 5, TILE_SIZE - 10, TILE_SIZE - 10, 2);
+                            ctx.fill();
+                        } else if (res.type === 'gold') {
+                            ctx.fillStyle = '#facc15';
+                            ctx.beginPath();
+                            ctx.arc(px + TILE_SIZE/2, py + TILE_SIZE/2, TILE_SIZE/3.5, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.strokeStyle = '#ca8a04';
+                            ctx.stroke();
                         }
                     }
                 }
@@ -563,15 +620,31 @@
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 if (explored[av.y] && explored[av.y][av.x]) {
+                    let px = av.x * TILE_SIZE;
+                    let py = av.y * TILE_SIZE;
                     ctx.fillStyle = av.color;
-                    ctx.fillRect(av.x * TILE_SIZE + 3, av.y * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+                    ctx.beginPath();
+                    ctx.arc(px + TILE_SIZE/2, py + TILE_SIZE/2, TILE_SIZE/2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.lineWidth = 1; // Restaurar grosor predeterminado
                 }
             }
             for (let i = 0; i < barbarians.length; i++) {
                 let barb = barbarians[i];
                 if (explored[barb.y] && explored[barb.y][barb.x]) {
+                    let px = barb.x * TILE_SIZE;
+                    let py = barb.y * TILE_SIZE;
                     ctx.fillStyle = barb.color;
-                    ctx.fillRect(barb.x * TILE_SIZE + 3, barb.y * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+                    ctx.beginPath();
+                    ctx.arc(px + TILE_SIZE/2, py + TILE_SIZE/2, TILE_SIZE/2.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                    ctx.lineWidth = 1;
                 }
             }
         }
@@ -579,16 +652,14 @@
         function updateGame() {
             gameTicks++;
 
-            // Producción pasiva de granjas
-            if (gameTicks % 60 === 0) {
-                let farmCount = 0;
-                for (let key in structures) {
-                    if (structures[key] === 'farm') farmCount++;
-                }
-                let prodMultiplier = technologies.steel ? 3 : (technologies.bronze ? 2 : 1);
-                if (farmCount > 0) {
-                    inventory.wood += farmCount * 2 * prodMultiplier;
-                    inventory.pe += farmCount;
+            for (let key in resources) {
+                let res = resources[key];
+                if (res.type === 'wood' && res.amount <= 0) {
+                    res.regenTimer++;
+                    if (res.regenTimer > 300) { 
+                        res.amount = 100;
+                        res.regenTimer = 0;
+                    }
                 }
             }
 
@@ -600,7 +671,8 @@
 
             if (invasionActive && gameTicks % 25 === 0) {
                 for (let k in structures) {
-                    if (structures[k] === 'tower') {
+                    let st = structures[k];
+                    if (st === 'tower' || st?.type === 'tower') {
                         let [tx, ty] = k.split(',').map(Number);
                         for (let i = barbarians.length - 1; i >= 0; i--) {
                             let barb = barbarians[i];
@@ -615,7 +687,6 @@
                 }
             }
 
-            // Actualización de movimiento de avatares
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 av.moveTimer++;
@@ -623,42 +694,59 @@
                     let dx = 0;
                     let dy = 0;
 
-                    // Únicos que exploran y se mueven por todo el mapa: exploradores y unidades militares
                     if (av.role === 'explorer' || av.role === 'infantry' || av.role === 'cavalry') {
                         dx = Math.floor(Math.random() * 3) - 1; 
                         dy = Math.floor(Math.random() * 3) - 1;
                         revealArea(av.x, av.y, av.role === 'explorer' ? 3 : 2);
                     } else {
-                        // Aldeanos: enfocados estrictamente en su tarea específica sin deambular en vano
-                        let targetRes = null;
+                        let targetCoord = null;
                         let minDist = 9999;
                         
-                        // Buscar recursos cercanos compatibles con su tarea
-                        for (let key in resources) {
-                            let rType = resources[key];
-                            let match = false;
-                            if (av.task === 'wood' && rType === 'wood') match = true;
-                            if (av.task === 'stone' && (rType === 'stone' || rType === 'gold')) match = true;
-                            if (av.task === 'farm' && rType === 'wood') match = true; // Suministro agrícola/madera cercano
+                        if (av.task === 'farm') {
+                            for (let key in structures) {
+                                let st = structures[key];
+                                if (st && st.type === 'farm') {
+                                    let [rx, ry] = key.split(',').map(Number);
+                                    let dist = Math.abs(rx - av.x) + Math.abs(ry - av.y);
+                                    if (dist < minDist) {
+                                        minDist = dist;
+                                        targetCoord = {x: rx, y: ry, key: key};
+                                    }
+                                }
+                            }
+                            if (!targetCoord) {
+                                let nx = av.x + (Math.floor(Math.random() * 3) - 1);
+                                let ny = av.y + (Math.floor(Math.random() * 3) - 1);
+                                let nKey = `${nx},${ny}`;
+                                if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && map[ny][nx] === 2 && !structures[nKey] && !resources[nKey]) {
+                                    structures[nKey] = { type: 'farm', amount: 100 };
+                                    targetCoord = {x: nx, y: ny, key: nKey};
+                                }
+                            }
+                        } else {
+                            for (let key in resources) {
+                                let res = resources[key];
+                                let match = false;
+                                if (av.task === 'wood' && res.type === 'wood' && res.amount > 0) match = true;
+                                if (av.task === 'stone' && (res.type === 'stone' || res.type === 'gold') && res.amount > 0) match = true;
 
-                            if (match) {
-                                let [rx, ry] = key.split(',').map(Number);
-                                let dist = Math.abs(rx - av.x) + Math.abs(ry - av.y);
-                                if (dist < minDist) {
-                                    minDist = dist;
-                                    targetRes = {x: rx, y: ry, key: key};
+                                if (match) {
+                                    let [rx, ry] = key.split(',').map(Number);
+                                    let dist = Math.abs(rx - av.x) + Math.abs(ry - av.y);
+                                    if (dist < minDist) {
+                                        minDist = dist;
+                                        targetCoord = {x: rx, y: ry, key: key};
+                                    }
                                 }
                             }
                         }
 
-                        if (targetRes) {
-                            // Acercarse al recurso asignado de forma directa
-                            if (av.x < targetRes.x) dx = 1;
-                            else if (av.x > targetRes.x) dx = -1;
-                            if (av.y < targetRes.y) dy = 1;
-                            else if (av.y > targetRes.y) dy = -1;
+                        if (targetCoord) {
+                            if (av.x < targetCoord.x) dx = 1;
+                            else if (av.x > targetCoord.x) dx = -1;
+                            if (av.y < targetCoord.y) dy = 1;
+                            else if (av.y > targetCoord.y) dy = -1;
                         } else {
-                            // Si se acabaron los recursos de su tipo en el mapa, deambulan en busca de nuevos
                             dx = Math.floor(Math.random() * 3) - 1; 
                             dy = Math.floor(Math.random() * 3) - 1;
                         }
@@ -672,15 +760,40 @@
                         av.y = ny;
 
                         let key = `${nx},${ny}`;
+                        
                         if (resources[key]) {
-                            let resType = resources[key];
-                            let multiplier = technologies.steel ? 4 : (technologies.bronze ? 3 : (technologies.flint ? 2 : 1));
-                            if (technologies.agri) multiplier += 1;
+                            let res = resources[key];
+                            if (res.amount > 0) {
+                                let multiplier = technologies.steel ? 4 : (technologies.bronze ? 3 : (technologies.flint ? 2 : 1));
+                                if (technologies.agri) multiplier += 1;
 
-                            if (resType === 'wood') { inventory.wood += (5 * multiplier); inventory.pe += 2; }
-                            if (resType === 'stone') { inventory.stone += (3 * multiplier); inventory.pe += 3; }
-                            if (resType === 'gold') { inventory.gold += (1 * multiplier); inventory.pe += 10; }
-                            delete resources[key];
+                                let harvestAmt = 10;
+                                if (res.amount < harvestAmt) harvestAmt = res.amount;
+                                res.amount -= harvestAmt;
+
+                                if (res.type === 'wood') { inventory.wood += (harvestAmt * multiplier); inventory.pe += 2; }
+                                if (res.type === 'stone') { inventory.stone += (harvestAmt * multiplier); inventory.pe += 3; }
+                                if (res.type === 'gold') { inventory.gold += (harvestAmt * multiplier); inventory.pe += 10; }
+                            }
+                        }
+
+                        let st = structures[key];
+                        if (st && st.type === 'farm') {
+                            let prodMultiplier = technologies.steel ? 3 : (technologies.bronze ? 2 : 1);
+                            let foodYield = 10 * prodMultiplier;
+                            st.amount -= foodYield;
+                            inventory.food += foodYield;
+                            inventory.pe += 2;
+
+                            if (st.amount <= 0) {
+                                delete structures[key];
+                                let fx = nx + (Math.floor(Math.random() * 3) - 1);
+                                let fy = ny + (Math.floor(Math.random() * 3) - 1);
+                                let fKey = `${fx},${fy}`;
+                                if (fx >= 0 && fx < COLS && fy >= 0 && fy < ROWS && map[fy][fx] === 2 && !structures[fKey] && !resources[fKey]) {
+                                    structures[fKey] = { type: 'farm', amount: 100 };
+                                }
+                            }
                         }
                     }
                     av.moveTimer = 0;
@@ -704,7 +817,7 @@
                     }
 
                     let barbKey = `${barb.x},${barb.y}`;
-                    if (structures[barbKey] === 'wall') {
+                    if (structures[barbKey] === 'wall' || structures[barbKey]?.type === 'wall') {
                         inventory.pe += 10;
                         delete structures[barbKey]; 
                         barbarians.splice(i, 1);
@@ -738,6 +851,7 @@
             document.getElementById('lbl-wood').innerText = inventory.wood;
             document.getElementById('lbl-stone').innerText = inventory.stone;
             document.getElementById('lbl-gold').innerText = inventory.gold;
+            document.getElementById('lbl-food').innerText = inventory.food;
             document.getElementById('lbl-pe').innerText = inventory.pe;
             document.getElementById('lbl-pop').innerText = avatars.length;
 
@@ -750,8 +864,9 @@
             let hasTownCenter = false;
             let hutCount = 0;
             for (let k in structures) {
-                if (structures[k] === 'towncenter') hasTownCenter = true;
-                if (structures[k] === 'hut') hutCount++;
+                let st = structures[k];
+                if (st === 'towncenter' || st?.type === 'towncenter') hasTownCenter = true;
+                if (st === 'hut' || st?.type === 'hut') hutCount++;
             }
 
             let missionElem = document.getElementById('lbl-mission');
@@ -783,18 +898,13 @@
 
         generateMap();
         
-        // Configuración inicial de unidades según lo solicitado:
-        // 1 Explorador verde
-        spawnAvatar('explorer', '#00ff66');
-        // 1 Caballería gris
-        spawnAvatar('cavalry', '#9e9e9e');
-        // 1 Infantería verde
-        spawnAvatar('infantry', '#2e7d32');
-        // 2 Aldeanos con tareas específicas asignadas (uno azul para madera, una rosado para minería/piedra)
-        spawnAvatar('villager_male', '#00bfff', 'wood');
-        spawnAvatar('villager_female', '#ff007f', 'stone');
+        spawnAvatar('explorer', '#4ade80');
+        spawnAvatar('cavalry', '#94a3b8');
+        spawnAvatar('infantry', '#16a34a');
+        spawnAvatar('villager_male', '#38bdf8', 'wood');
+        spawnAvatar('villager_female', '#f472b6', 'stone');
+        spawnAvatar('villager_male', '#fde047', 'farm');
 
-        // Revelar el área inicial alrededor de las unidades para que no comiencen totalmente a ciegas
         avatars.forEach(av => revealArea(av.x, av.y, 4));
 
         gameLoop();
