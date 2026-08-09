@@ -2,843 +2,131 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WorldZeit - Civilización Retro HD</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorldZeit - Estrategia en la Nube</title>
     <style>
-        :root {
-            --bg-color: #0f1115;
-            --text-color: #f0f2f5;
-            --accent-color: #00ff88;
-            --danger-color: #ff4757;
-            --panel-bg: rgba(26, 29, 36, 0.9);
-            --btn-bg: #262a33;
-            --btn-hover: #343a46;
-        }
-
         body {
             margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            width: 100vw;
+            background: #111;
+            color: #fff;
+            font-family: monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             height: 100vh;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
         }
-
-        #gameCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            display: block;
-            background-color: #000;
-            cursor: grab;
+        canvas {
+            border: 2px solid #444;
+            background: #222;
         }
-        #gameCanvas:active {
-            cursor: grabbing;
-        }
-
-        #hud-top {
-            position: relative;
-            z-index: 10;
+        #ui {
             margin-top: 10px;
-            background: var(--panel-bg);
-            padding: 6px 14px;
-            border-radius: 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 1px solid #2f3542;
-            backdrop-filter: blur(5px);
-        }
-
-        h1 {
-            color: var(--accent-color);
-            font-size: 14px;
-            margin: 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        #toggle-menu-btn {
-            background-color: var(--accent-color);
-            color: #000;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            transition: transform 0.1s;
-        }
-        #toggle-menu-btn:active {
-            transform: scale(0.95);
-        }
-
-        #game-container {
-            position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            background-color: var(--panel-bg);
-            padding: 8px 12px;
-            border-radius: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.7);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 90%;
-            max-width: 480px;
-            border: 1px solid #2f3542;
-            backdrop-filter: blur(8px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-        }
-
-        #game-container.hidden {
-            opacity: 0;
-            pointer-events: none;
-            transform: translateX(-50%) translateY(20px);
-        }
-
-        #ui-panel {
-            text-align: center;
-            font-size: 10px;
-            font-weight: 600;
-            line-height: 1.4;
-            width: 100%;
-            background: rgba(0,0,0,0.3);
-            padding: 5px;
-            border-radius: 6px;
-            margin-bottom: 6px;
-        }
-
-        .stat-highlight {
-            color: var(--accent-color);
-        }
-
-        .danger-highlight {
-            color: var(--danger-color);
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-
-        #control-panels {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            width: 100%;
-            max-height: 180px;
-            overflow-y: auto;
-            padding-right: 2px;
-        }
-
-        .button-row {
-            display: flex;
-            gap: 4px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .action-btn {
-            background-color: var(--btn-bg);
-            color: var(--text-color);
-            border: 1px solid #485460;
-            padding: 4px 7px;
-            border-radius: 4px;
-            font-size: 9px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        .action-btn:hover {
-            background-color: var(--btn-hover);
-            border-color: var(--accent-color);
-        }
-
-        .action-btn.unlocked {
-            background-color: var(--accent-color);
-            color: #000;
-            border-color: var(--accent-color);
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
 
-    <div id="hud-top">
-        <h1>WorldZeit HD</h1>
-        <button id="toggle-menu-btn" onclick="toggleMenu()">Ocultar Menú</button>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <div id="game-container">
-        <div id="ui-panel">
-            Era: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span> | Pop: <span id="lbl-pop">6</span><br>
-            🪵 M: <span id="lbl-wood">500</span> | 🪨 P: <span id="lbl-stone">300</span> | 🪙 O: <span id="lbl-gold">200</span> | 🌾 A: <span id="lbl-food">100</span><br>
-            Misión: <span class="stat-highlight" id="lbl-mission">Crear C.Urbano y 2 Cabañas</span> | Estado: <span class="stat-highlight" id="lbl-status">Paz</span>
-        </div>
-        <div id="control-panels">
-            <div class="button-row">
-                <button class="action-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego(20M)</button>
-                <button class="action-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex(30P)</button>
-                <button class="action-btn" id="btn-agri" onclick="researchTech('agri')">🌾 Agríc(40M,20P)</button>
-                <button class="action-btn" id="btn-bronze" onclick="researchTech('bronze')">🛡️ Metal(50P,10O)</button>
-            </div>
-            <div class="button-row">
-                <button class="action-btn" id="btn-arch" onclick="researchTech('arch')">🏛️ Arq(60P,20O)</button>
-                <button class="action-btn" id="btn-steel" onclick="researchTech('steel')">⚔️ Acero(80P,30O)</button>
-            </div>
-            <div class="button-row">
-                <button class="action-btn" onclick="buildStructure('towncenter')">🏛️ C.Urbano(50M,50P)</button>
-                <button class="action-btn" onclick="buildStructure('hut')">⛺ Cabaña(30M,15P)</button>
-                <button class="action-btn" onclick="buildStructure('farm')">🌾 Granja(20M,10P)</button>
-            </div>
-            <div class="button-row">
-                <button class="action-btn" onclick="buildStructure('market')">⚖️ Mercado(30M,20P)</button>
-                <button class="action-btn" onclick="buildStructure('tower')">🏹 Torre(40P,10M)</button>
-                <button class="action-btn" onclick="buildStructure('wall')">🧱 Muralla(20P)</button>
-            </div>
-            <div class="button-row">
-                <button class="action-btn" onclick="trainUnit('explorer')">🧭 Explorador(15M)</button>
-                <button class="action-btn" onclick="trainUnit('infantry')">⚔️ Infantería(20M,10P)</button>
-                <button class="action-btn" onclick="trainUnit('cavalry')">🐎 Caballería(30M,20O)</button>
-            </div>
-            <div class="button-row">
-                <button class="action-btn" onclick="tradeResources('woodToGold')">⚖️ 20M->1O</button>
-                <button class="action-btn" onclick="tradeResources('stoneToGold')">⚖️ 20P->1O</button>
-            </div>
-        </div>
-    </div>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div id="ui">Oro: <span id="goldVal">100</span> | Madera: <span id="woodVal">100</span></div>
 
     <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        const ROWS = 20;
+        const COLS = 20;
+        const CELL_SIZE = canvas.width / COLS;
 
-        const TILE_SIZE = 32;
-        const COLS = 60; 
-        const ROWS = 60; 
+        // Estado del juego
+        let fogMap = Array(ROWS).fill().map(() => Array(COLS).fill(0));
+        let resources = { gold: 100, wood: 100, woodRate: 1.0 };
+        
+        // Unidades de ejemplo (Explorador)
+        let units = [
+            { x: 10, y: 10, visionRange: 3 }
+        ];
 
-        // Cámara y Zoom
-        let camera = {
-            x: (COLS * TILE_SIZE) / 2 - window.innerWidth / 2,
-            y: (ROWS * TILE_SIZE) / 2 - window.innerHeight / 2,
-            zoom: 1.0,
-            minZoom: 0.5,
-            maxZoom: 2.5,
-            isDragging: false,
-            startX: 0,
-            startY: 0
-        };
-
-        canvas.addEventListener('mousedown', (e) => {
-            camera.isDragging = true;
-            camera.startX = e.clientX;
-            camera.startY = e.clientY;
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            if (!camera.isDragging) return;
-            let dx = e.clientX - camera.startX;
-            let dy = e.clientY - camera.startY;
-            camera.x -= dx / camera.zoom;
-            camera.y -= dy / camera.zoom;
-            camera.startX = e.clientX;
-            camera.startY = e.clientY;
-            clampCamera();
-        });
-
-        window.addEventListener('mouseup', () => { camera.isDragging = false; });
-
-        canvas.addEventListener('wheel', (e) => {
-            e.preventDefault();
-            let zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-            let newZoom = camera.zoom * zoomFactor;
-            if (newZoom >= camera.minZoom && newZoom <= camera.maxZoom) {
-                camera.zoom = newZoom;
-            }
-        }, { passive: false });
-
-        function clampCamera() {
-            let maxW = COLS * TILE_SIZE;
-            let maxH = ROWS * TILE_SIZE;
-            if (camera.x < 0) camera.x = 0;
-            if (camera.y < 0) camera.y = 0;
-            if (camera.x > maxW) camera.x = maxW;
-            if (camera.y > maxH) camera.y = maxH;
-        }
-
-        function toggleMenu() {
-            const container = document.getElementById('game-container');
-            const btn = document.getElementById('toggle-menu-btn');
-            container.classList.toggle('hidden');
-            btn.innerText = container.classList.contains('hidden') ? 'Ver Menú' : 'Ocultar Menú';
-        }
-
-        const TERRAIN_COLORS = {
-            0: '#1e40af', 
-            1: '#d4b483', 
-            2: '#38a169', 
-            3: '#22543d', 
-            4: '#4a5568'  
-        };
-
-        let map = [];
-        let explored = [];
-        let resources = {}; 
-        let structures = {};
-        let avatars = [];
-        let animals = [];
-        let barbarians = [];
-
-        let inventory = { wood: 500, stone: 300, gold: 200, food: 100, pe: 0 };
-        let technologies = { fire: false, flint: false, agri: false, bronze: false, arch: false, steel: false };
-
-        let gameTicks = 0;
-        let invasionActive = false;
-
-        function generateMap() {
-            map = [];
-            explored = [];
-            resources = {};
-            structures = {};
-            animals = [];
-
-            for (let y = 0; y < ROWS; y++) {
-                let row = [];
-                let expRow = [];
-                for (let x = 0; x < COLS; x++) {
-                    let rand = Math.random();
-                    let tile = rand < 0.20 ? 0 : (rand < 0.70 ? 2 : (rand < 0.90 ? 3 : 4));
-                    row.push(tile);
-                    expRow.push(false);
-
-                    if (tile === 3 && Math.random() < 0.55) {
-                        resources[`${x},${y}`] = { type: 'wood', amount: 100, regenTimer: 0 };
-                    } else if (tile === 4 && Math.random() < 0.60) {
-                        resources[`${x},${y}`] = { type: 'stone', amount: 100 };
-                    } else if (tile === 2 && Math.random() < 0.08) {
-                        resources[`${x},${y}`] = { type: 'gold', amount: 100 };
-                    } else if (tile === 2 && Math.random() < 0.04) {
-                        animals.push({ x: x, y: y, type: 'deer', moveTimer: 0, speed: 45 });
-                    }
-                }
-                map.push(row);
-                explored.push(expRow);
-            }
-
-            for(let p = 0; p < 2; p++) {
-                let newMap = [];
-                for (let y = 0; y < ROWS; y++) {
-                    let newRow = [];
-                    for (let x = 0; x < COLS; x++) {
-                        newRow.push(getMostCommonNeighbor(x, y));
-                    }
-                    newMap.push(newRow);
-                }
-                map = newMap;
-            }
-
-            for (let y = 0; y < ROWS; y++) {
-                for (let x = 0; x < COLS; x++) {
-                    if (map[y][x] === 2 && hasNeighbor(x, y, 0)) {
-                        map[y][x] = 1;
-                    }
+        // Lógica de Niebla de Guerra
+        function updateVision() {
+            for(let y = 0; y < ROWS; y++) {
+                for(let x = 0; x < COLS; x++) {
+                    if(fogMap[y][x] === 2) fogMap[y][x] = 1;
                 }
             }
-        }
-
-        function getMostCommonNeighbor(x, y) {
-            let counts = {0:0, 1:0, 2:0, 3:0, 4:0};
-            for(let dy = -1; dy <= 1; dy++) {
-                for(let dx = -1; dx <= 1; dx++) {
-                    let nx = x + dx;
-                    let ny = y + dy;
-                    if(nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
-                        counts[map[ny][nx]]++;
-                    }
-                }
-            }
-            let maxCount = -1;
-            let bestTile = map[y][x];
-            for(let tile in counts) {
-                if(counts[tile] > maxCount) {
-                    maxCount = counts[tile];
-                    bestTile = parseInt(tile);
-                }
-            }
-            return bestTile;
-        }
-
-        function hasNeighbor(x, y, targetTile) {
-            for(let dy = -1; dy <= 1; dy++) {
-                for(let dx = -1; dx <= 1; dx++) {
-                    let nx = x + dx;
-                    let ny = y + dy;
-                    if(nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
-                        if(map[ny][nx] === targetTile && (dx !== 0 || dy !== 0)) return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        function spawnAvatar(role, forcedColor = null, specificTask = null) {
-            let spawned = false;
-            let attempts = 0;
-            while(!spawned && attempts < 50) {
-                let rx = Math.floor(Math.random() * COLS);
-                let ry = Math.floor(Math.random() * ROWS);
-                if (map[ry][rx] === 2 || map[ry][rx] === 1) {
-                    let color = forcedColor || '#38bdf8';
-                    let task = specificTask;
-                    if (!task && (role === 'villager_male' || role === 'villager_female')) {
-                        let tasksPool = ['wood', 'stone', 'farm'];
-                        task = tasksPool[Math.floor(Math.random() * tasksPool.length)];
-                    }
-
-                    avatars.push({
-                        x: rx, y: ry, role: role, color: color, task: task,
-                        moveTimer: 0, speed: role === 'cavalry' ? 20 : (role === 'explorer' ? 25 : 35)
-                    });
-                    spawned = true;
-                }
-                attempts++;
-            }
-        }
-
-        function revealArea(cx, cy, radius) {
-            for(let dy = -radius; dy <= radius; dy++) {
-                for(let dx = -radius; dx <= radius; dx++) {
-                    let nx = cx + dx;
-                    let ny = cy + dy;
-                    if(nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
-                        explored[ny][nx] = true;
-                    }
-                }
-            }
-        }
-
-        function triggerInvasion() {
-            invasionActive = true;
-            barbarians = [];
-            let count = 4 + Math.floor(Math.random() * 3);
-            for(let i = 0; i < count; i++) {
-                let bx = Math.random() < 0.5 ? 0 : COLS - 1;
-                let by = Math.floor(Math.random() * ROWS);
-                barbarians.push({ x: bx, y: by, moveTimer: 0, speed: 25 });
-            }
-        }
-
-        // --- Dibujo de Sprites Pixel Art / 8-bits procedimentales limpios ---
-        function drawPixelTree(px, py) {
-            ctx.fillStyle = '#14532d';
-            ctx.fillRect(px + 8, py + 4, 16, 20);
-            ctx.fillStyle = '#166534';
-            ctx.fillRect(px + 6, py + 8, 20, 12);
-            ctx.fillStyle = '#78350f';
-            ctx.fillRect(px + 13, py + 24, 6, 6);
-        }
-
-        function drawPixelStone(px, py) {
-            ctx.fillStyle = '#64748b';
-            ctx.fillRect(px + 8, py + 12, 16, 14);
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillRect(px + 10, py + 10, 12, 6);
-        }
-
-        function drawPixelGold(px, py) {
-            ctx.fillStyle = '#ca8a04';
-            ctx.fillRect(px + 8, py + 12, 16, 14);
-            ctx.fillStyle = '#facc15';
-            ctx.fillRect(px + 10, py + 10, 12, 6);
-        }
-
-        function drawPixelVillager(px, py, role) {
-            let color = role === 'villager_female' ? '#f472b6' : '#38bdf8';
-            ctx.fillStyle = color;
-            ctx.fillRect(px + 10, py + 12, 12, 14); // cuerpo
-            ctx.fillStyle = '#fde047';
-            ctx.fillRect(px + 10, py + 6, 12, 8);  // cabeza
-        }
-
-        function drawPixelMilitary(px, py, role) {
-            ctx.fillStyle = role === 'cavalry' ? '#94a3b8' : '#16a34a';
-            ctx.fillRect(px + 8, py + 10, 16, 14);
-            ctx.fillStyle = '#cbd5e1';
-            ctx.fillRect(px + 10, py + 4, 12, 8); // casco
-            ctx.fillStyle = '#ef4444';
-            ctx.fillRect(px + 20, py + 14, 6, 3); // espada o lanza
-        }
-
-        function drawPixelBarbarian(px, py) {
-            ctx.fillStyle = '#7f1d1d';
-            ctx.fillRect(px + 8, py + 10, 16, 14);
-            ctx.fillStyle = '#f87171';
-            ctx.fillRect(px + 10, py + 4, 12, 8);
-            ctx.fillStyle = '#000';
-            ctx.fillRect(px + 6, py + 12, 4, 4); // escudo rústico
-        }
-
-        function drawPixelAnimal(px, py) {
-            ctx.fillStyle = '#a16207'; // ciervo / jabalí 8-bit
-            ctx.fillRect(px + 6, py + 12, 20, 10);
-            ctx.fillStyle = '#b45309';
-            ctx.fillRect(px + 20, py + 6, 6, 8); // cabeza
-            ctx.fillRect(px + 8, py + 22, 3, 6);
-            ctx.fillRect(px + 21, py + 22, 3, 6);
-        }
-
-        function researchTech(tech) {
-            if (tech === 'fire' && !technologies.fire && inventory.wood >= 20) {
-                inventory.wood -= 20; technologies.fire = true; inventory.pe += 25;
-                document.getElementById('btn-fire').classList.add('unlocked');
-                document.getElementById('btn-fire').innerText = "🔥 Fuego(✓)";
-            } else if (tech === 'flint' && !technologies.flint && inventory.stone >= 30) {
-                inventory.stone -= 30; technologies.flint = true; inventory.pe += 40;
-                document.getElementById('btn-flint').classList.add('unlocked');
-                document.getElementById('btn-flint').innerText = "🪨 Sílex(✓)";
-            } else if (tech === 'agri' && !technologies.agri && inventory.wood >= 40 && inventory.stone >= 20) {
-                inventory.wood -= 40; inventory.stone -= 20; technologies.agri = true; inventory.pe += 75;
-                document.getElementById('btn-agri').classList.add('unlocked');
-                document.getElementById('btn-agri').innerText = "🌾 Agríc(✓)";
-            } else if (tech === 'bronze' && !technologies.bronze && inventory.stone >= 50 && inventory.gold >= 10) {
-                inventory.stone -= 50; inventory.gold -= 10; technologies.bronze = true; inventory.pe += 150;
-                document.getElementById('btn-bronze').classList.add('unlocked');
-                document.getElementById('btn-bronze').innerText = "🛡️ Metal(✓)";
-            } else if (tech === 'arch' && !technologies.arch && inventory.stone >= 60 && inventory.gold >= 20) {
-                inventory.stone -= 60; inventory.gold -= 20; technologies.arch = true; inventory.pe += 250;
-                document.getElementById('btn-arch').classList.add('unlocked');
-                document.getElementById('btn-arch').innerText = "🏛️ Arq(✓)";
-            } else if (tech === 'steel' && !technologies.steel && inventory.stone >= 80 && inventory.gold >= 30) {
-                inventory.stone -= 80; inventory.gold -= 30; technologies.steel = true; inventory.pe += 400;
-                document.getElementById('btn-steel').classList.add('unlocked');
-                document.getElementById('btn-steel').innerText = "⚔️ Acero(✓)";
-            }
-        }
-
-        function buildStructure(type) {
-            if (type === 'towncenter' && inventory.wood >= 50 && inventory.stone >= 50) {
-                inventory.wood -= 50; inventory.stone -= 50; inventory.pe += 120; placeRandomStructure('towncenter');
-            } else if (type === 'hut' && inventory.wood >= 30 && inventory.stone >= 15) {
-                inventory.wood -= 30; inventory.stone -= 15; inventory.pe += 50; placeRandomStructure('hut');
-                spawnAvatar(Math.random() < 0.5 ? 'villager_male' : 'villager_female');
-            } else if (type === 'farm' && inventory.wood >= 20 && inventory.stone >= 10) {
-                inventory.wood -= 20; inventory.stone -= 10; inventory.pe += 35; placeRandomStructure('farm');
-            } else if (type === 'market' && inventory.wood >= 30 && inventory.stone >= 20) {
-                inventory.wood -= 30; inventory.stone -= 20; inventory.pe += 45; placeRandomStructure('market');
-            } else if (type === 'wall' && inventory.stone >= 20) {
-                inventory.stone -= 20; inventory.pe += 20; placeRandomStructure('wall');
-            } else if (type === 'tower' && inventory.stone >= 40 && inventory.wood >= 10) {
-                inventory.stone -= 40; inventory.wood -= 10; inventory.pe += 60; placeRandomStructure('tower');
-            }
-        }
-
-        function trainUnit(type) {
-            if (type === 'explorer' && inventory.wood >= 15) {
-                inventory.wood -= 15; inventory.pe += 20; spawnAvatar('explorer');
-            } else if (type === 'infantry' && inventory.wood >= 20 && inventory.stone >= 10) {
-                inventory.wood -= 20; inventory.stone -= 10; inventory.pe += 30; spawnAvatar('infantry');
-            } else if (type === 'cavalry' && inventory.wood >= 30 && inventory.gold >= 20) {
-                inventory.wood -= 30; inventory.gold -= 20; inventory.pe += 50; spawnAvatar('cavalry');
-            }
-        }
-
-        function tradeResources(type) {
-            let hasMarket = false;
-            for (let k in structures) { if (structures[k] === 'market' || structures[k]?.type === 'market') hasMarket = true; }
-            if (!hasMarket) { alert("¡Necesitas construir un Mercado (⚖️) para comerciar!"); return; }
-
-            if (type === 'woodToGold' && inventory.wood >= 20) {
-                inventory.wood -= 20; inventory.gold += 1; inventory.pe += 5;
-            } else if (type === 'stoneToGold' && inventory.stone >= 20) {
-                inventory.stone -= 20; inventory.gold += 1; inventory.pe += 5;
-            }
-        }
-
-        function placeRandomStructure(structType) {
-            for(let attempts = 0; attempts < 40; attempts++) {
-                let rx = Math.floor(Math.random() * COLS);
-                let ry = Math.floor(Math.random() * ROWS);
-                let key = `${rx},${ry}`;
-                if (map[ry][rx] === 2 && !resources[key] && !structures[key]) {
-                    structures[key] = structType === 'farm' ? { type: 'farm', amount: 100 } : structType;
-                    break;
-                }
-            }
-        }
-
-        function updateGame() {
-            gameTicks++;
-
-            for (let key in resources) {
-                let res = resources[key];
-                if (res.type === 'wood' && res.amount <= 0) {
-                    res.regenTimer++;
-                    if (res.regenTimer > 300) { res.amount = 100; res.regenTimer = 0; }
-                }
-            }
-
-            if (!invasionActive && gameTicks % 300 === 0 && inventory.pe > 20 && Math.random() < 0.8) {
-                triggerInvasion();
-            }
-
-            // Movimiento y lógica de animales (Caza pasiva o huida)
-            for (let i = animals.length - 1; i >= 0; i--) {
-                let an = animals[i];
-                an.moveTimer++;
-                if (an.moveTimer > an.speed) {
-                    an.x += Math.floor(Math.random() * 3) - 1;
-                    an.y += Math.floor(Math.random() * 3) - 1;
-                    an.moveTimer = 0;
-                }
-            }
-
-            // Defensa de torres
-            if (invasionActive && gameTicks % 25 === 0) {
-                for (let k in structures) {
-                    let st = structures[k];
-                    if (st === 'tower' || st?.type === 'tower') {
-                        let [tx, ty] = k.split(',').map(Number);
-                        for (let i = barbarians.length - 1; i >= 0; i--) {
-                            let barb = barbarians[i];
-                            if (Math.abs(barb.x - tx) + Math.abs(barb.y - ty) <= 3) {
-                                inventory.pe += 15; barbarians.splice(i, 1); break;
-                            }
+            
+            units.forEach(u => {
+                let range = u.visionRange;
+                for(let dy = -range; dy <= range; dy++) {
+                    for(let dx = -range; dx <= range; dx++) {
+                        let ny = u.y + dy;
+                        let nx = u.x + dx;
+                        if(ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
+                            fogMap[ny][nx] = 2;
                         }
                     }
                 }
-            }
-
-            // Unidades militares combatiendo bárbaros
-            for (let av of avatars) {
-                if (invasionActive && (av.role === 'infantry' || av.role === 'cavalry')) {
-                    av.moveTimer++;
-                    if (av.moveTimer > 15) {
-                        let closestBarb = null, minD = 999;
-                        for (let b of barbarians) {
-                            let d = Math.abs(b.x - av.x) + Math.abs(b.y - av.y);
-                            if (d < minD) { minD = d; closestBarb = b; }
-                        }
-                        if (closestBarb) {
-                            if (av.x < closestBarb.x) av.x++; else if (av.x > closestBarb.x) av.x--;
-                            if (av.y < closestBarb.y) av.y++; else if (av.y > closestBarb.y) av.y--;
-                        }
-                        av.moveTimer = 0;
-                    }
-                }
-            }
-
-            // Aldeanos y exploración
-            for (let i = 0; i < avatars.length; i++) {
-                let av = avatars[i];
-                av.moveTimer++;
-                if (av.moveTimer > av.speed) {
-                    let dx = Math.floor(Math.random() * 3) - 1;
-                    let dy = Math.floor(Math.random() * 3) - 1;
-                    if (av.role === 'explorer' || av.role === 'infantry' || av.role === 'cavalry') {
-                        revealArea(av.x, av.y, 3);
-                    }
-                    let nx = av.x + dx;
-                    let ny = av.y + dy;
-                    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS && map[ny][nx] !== 0) {
-                        av.x = nx; av.y = ny;
-                        let key = `${nx},${ny}`;
-                        if (resources[key] && resources[key].amount > 0) {
-                            let res = resources[key];
-                            let harvest = Math.min(10, res.amount);
-                            res.amount -= harvest;
-                            if (res.type === 'wood') { inventory.wood += harvest; inventory.pe += 2; }
-                            if (res.type === 'stone') { inventory.stone += harvest; inventory.pe += 3; }
-                        }
-                    }
-                    av.moveTimer = 0;
-                }
-            }
-
-            // Bárbaros hostiles avanzados
-            if (invasionActive) {
-                for (let i = barbarians.length - 1; i >= 0; i--) {
-                    let barb = barbarians[i];
-                    barb.moveTimer++;
-                    if (barb.moveTimer > barb.speed) {
-                        let targetX = COLS / 2, targetY = ROWS / 2;
-                        for (let k in structures) {
-                            let st = structures[k];
-                            if (st === 'towncenter' || st?.type === 'towncenter') {
-                                [targetX, targetY] = k.split(',').map(Number);
-                                break;
-                            }
-                        }
-                        if (barb.x < targetX) barb.x++; else if (barb.x > targetX) barb.x--;
-                        if (barb.y < targetY) barb.y++; else if (barb.y > targetY) barb.y--;
-                        barb.moveTimer = 0;
-                    }
-
-                    let bKey = `${barb.x},${barb.y}`;
-                    if (structures[bKey]) {
-                        delete structures[bKey];
-                        if (inventory.gold >= 10) inventory.gold -= 10;
-                        barbarians.splice(i, 1);
-                        continue;
-                    }
-
-                    for (let j = avatars.length - 1; j >= 0; j--) {
-                        let av = avatars[j];
-                        if (barb.x === av.x && barb.y === av.y) {
-                            if (av.role === 'infantry' || av.role === 'cavalry' || technologies.bronze || technologies.steel) {
-                                inventory.pe += 30; barbarians.splice(i, 1);
-                            } else {
-                                avatars.splice(j, 1); barbarians.splice(i, 1);
-                            }
-                            break;
-                        }
-                    }
-                }
-                if (barbarians.length === 0) invasionActive = false;
-            }
-
-            updateUI();
+            });
         }
 
-        function updateUI() {
-            document.getElementById('lbl-wood').innerText = inventory.wood;
-            document.getElementById('lbl-stone').innerText = inventory.stone;
-            document.getElementById('lbl-gold').innerText = inventory.gold;
-            document.getElementById('lbl-food').innerText = inventory.food;
-            document.getElementById('lbl-pe').innerText = inventory.pe;
-            document.getElementById('lbl-pop').innerText = avatars.length;
-
-            let age = "Piedra";
-            if (inventory.pe >= 200 || technologies.bronze) age = "Bronce";
-            if (inventory.pe >= 500 || technologies.arch) age = "Media";
-            if (inventory.pe >= 900 || technologies.steel) age = "Acero";
-            document.getElementById('lbl-age').innerText = age;
-
-            let status = document.getElementById('lbl-status');
-            if (invasionActive) {
-                status.innerText = "¡SAQUEO BÁRBARO!";
-                status.className = "danger-highlight";
-            } else {
-                status.innerText = "Paz";
-                status.className = "stat-highlight";
+        // Sistema Económico
+        function updateEconomy() {
+            let maintenanceCost = units.length * 0.05;
+            resources.gold = Math.max(0, resources.gold - maintenanceCost);
+            
+            if(resources.woodRate > 0.2) {
+                resources.woodRate *= 0.99;
             }
+
+            // Actualizar interfaz HTML
+            document.getElementById("goldVal").innerText = resources.gold.toFixed(1);
+            document.getElementById("woodVal").innerText = resources.wood.toFixed(1);
         }
 
+        // Bucle de Renderizado
         function render() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            ctx.save();
-            ctx.translate(canvas.width / 2, canvas.height / 2);
-            ctx.scale(camera.zoom, camera.zoom);
-            ctx.translate(-camera.x - canvas.width / 2, -camera.y - canvas.height / 2);
+            // Dibujar terreno base simulado
+            ctx.fillStyle = "#3a3a3a";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            let startX = Math.floor(camera.x / TILE_SIZE);
-            let startY = Math.floor(camera.y / TILE_SIZE);
-            let endX = startX + Math.ceil(canvas.width / TILE_SIZE / camera.zoom) + 2;
-            let endY = startY + Math.ceil(canvas.height / TILE_SIZE / camera.zoom) + 2;
+            // Dibujar Unidades
+            units.forEach(u => {
+                ctx.fillStyle = "#00ffcc";
+                ctx.fillRect(u.x * CELL_SIZE, u.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+            });
 
-            for (let y = Math.max(0, startY); y < Math.min(ROWS, endY); y++) {
-                for (let x = Math.max(0, startX); x < Math.min(COLS, endX); x++) {
-                    let px = x * TILE_SIZE;
-                    let py = y * TILE_SIZE;
-
-                    if (!explored[y][x]) {
-                        ctx.fillStyle = '#090a0f';
-                        ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-                        continue;
-                    }
-
-                    ctx.fillStyle = TERRAIN_COLORS[map[y][x]];
-                    ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
-
-                    let key = `${x},${y}`;
-                    let st = structures[key];
-                    if (st) {
-                        let t = typeof st === 'object' ? st.type : st;
-                        if (t === 'towncenter') { ctx.fillStyle = '#fbbf24'; ctx.fillRect(px + 4, py + 4, 24, 24); }
-                        else if (t === 'hut') { ctx.fillStyle = '#b45309'; ctx.fillRect(px + 6, py + 6, 20, 20); }
-                        else if (t === 'farm') { ctx.fillStyle = '#fde047'; ctx.fillRect(px + 4, py + 4, 24, 24); }
-                        else if (t === 'market') { ctx.fillStyle = '#f97316'; ctx.fillRect(px + 6, py + 6, 20, 20); }
-                        else if (t === 'wall') { ctx.fillStyle = '#64748b'; ctx.fillRect(px + 2, py + 2, 28, 28); }
-                        else if (t === 'tower') { ctx.fillStyle = '#94a3b8'; ctx.fillRect(px + 8, py + 8, 16, 16); }
-                    } else if (resources[key]) {
-                        let res = resources[key];
-                        if (res.type === 'wood' && res.amount > 0) drawPixelTree(px, py);
-                        else if (res.type === 'stone') drawPixelStone(px, py);
-                        else if (res.type === 'gold') drawPixelGold(px, py);
+            // Dibujar Niebla de Guerra
+            for(let y = 0; y < ROWS; y++) {
+                for(let x = 0; x < COLS; x++) {
+                    if(fogMap[y][x] === 0) {
+                        ctx.fillStyle = "black";
+                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    } else if(fogMap[y][x] === 1) {
+                        ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
                     }
                 }
             }
-
-            // Dibujar Animales 8-bit
-            for (let an of animals) {
-                if (explored[an.y] && explored[an.y][an.x]) {
-                    drawPixelAnimal(an.x * TILE_SIZE, an.y * TILE_SIZE);
-                }
-            }
-
-            // Dibujar Avatares / Aldeanos / Militares 8-bit
-            for (let av of avatars) {
-                if (explored[av.y] && explored[av.y][av.x]) {
-                    let px = av.x * TILE_SIZE;
-                    let py = av.y * TILE_SIZE;
-                    if (av.role === 'infantry' || av.role === 'cavalry' || av.role === 'explorer') {
-                        drawPixelMilitary(px, py, av.role);
-                    } else {
-                        drawPixelVillager(px, py, av.role);
-                    }
-                }
-            }
-
-            // Dibujar Bárbaros 8-bit
-            for (let barb of barbarians) {
-                if (explored[barb.y] && explored[barb.y][barb.x]) {
-                    drawPixelBarbarian(barb.x * TILE_SIZE, barb.y * TILE_SIZE);
-                }
-            }
-
-            ctx.restore();
         }
 
-        function gameLoop() {
-            updateGame();
+        // Movimiento simple de prueba para la unidad con las flechas
+        window.addEventListener("keydown", (e) => {
+            if(e.key === "ArrowUp" && units[0].y > 0) units[0].y--;
+            if(e.key === "ArrowDown" && units[0].y < ROWS - 1) units[0].y++;
+            if(e.key === "ArrowLeft" && units[0].x > 0) units[0].x--;
+            if(e.key === "ArrowRight" && units[0].x < COLS - 1) units[0].x++;
+        });
+
+        // Ciclos principales del juego
+        setInterval(() => {
+            updateVision();
+            updateEconomy();
             render();
-            requestAnimationFrame(gameLoop);
-        }
-
-        generateMap();
-        spawnAvatar('explorer', '#4ade80');
-        spawnAvatar('cavalry', '#94a3b8');
-        spawnAvatar('infantry', '#16a34a');
-        spawnAvatar('villager_male', '#38bdf8', 'wood');
-        spawnAvatar('villager_female', '#f472b6', 'stone');
-        spawnAvatar('villager_male', '#fde047', 'farm');
-
-        avatars.forEach(av => revealArea(av.x, av.y, 5));
-        gameLoop();
+        }, 100);
     </script>
 </body>
 </html>
