@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WordZeit - Evolución</title>
+    <title>WorldZeit - Evolución</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -82,7 +82,7 @@
         #tech-panel {
             margin-top: 8px;
             display: flex;
-            gap: 6px;
+            gap: 5px;
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
@@ -92,9 +92,9 @@
             background-color: var(--btn-bg);
             color: var(--text-color);
             border: 1px solid #444;
-            padding: 6px 10px;
+            padding: 5px 8px;
             border-radius: 4px;
-            font-size: 11px;
+            font-size: 10px;
             cursor: pointer;
             font-weight: bold;
             transition: all 0.2s;
@@ -109,18 +109,19 @@
 </head>
 <body>
 
-    <h1>WORDZEIT</h1>
+    <h1>WORLDZEIT</h1>
     <div id="game-container">
         <canvas id="gameCanvas" width="320" height="320"></canvas>
         <div id="ui-panel">
-            Edad: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span><br>
+            Era: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span><br>
             🪵 Madera: <span id="lbl-wood">0</span> | 🪨 Piedra: <span id="lbl-stone">0</span> | 🪙 Oro: <span id="lbl-gold">0</span><br>
             Estado: <span class="stat-highlight" id="lbl-status">Paz en el territorio</span>
         </div>
         <div id="tech-panel">
-            <button class="tech-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego (20 Mad)</button>
-            <button class="tech-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex (30 Pie)</button>
-            <button class="tech-btn" id="btn-agri" onclick="researchTech('agri')">🌾 Agríc. (40M, 20P)</button>
+            <button class="tech-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego (20M)</button>
+            <button class="tech-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex (30P)</button>
+            <button class="tech-btn" id="btn-agri" onclick="researchTech('agri')">🌾 Agríc. (40M,20P)</button>
+            <button class="tech-btn" id="btn-bronze" onclick="researchTech('bronze')">🛡️ Metal. (50P,10O)</button>
         </div>
     </div>
 
@@ -155,7 +156,8 @@
         let technologies = {
             fire: false,
             flint: false,
-            agri: false
+            agri: false,
+            bronze: false
         };
 
         let gameTicks = 0;
@@ -260,7 +262,6 @@
         function triggerInvasion() {
             invasionActive = true;
             barbarians = [];
-            // Aparecen 2 o 3 bárbaros en los bordes del mapa
             let count = 2 + Math.floor(Math.random() * 2);
             for(let i = 0; i < count; i++) {
                 let bx = Math.random() < 0.5 ? 0 : COLS - 1;
@@ -297,13 +298,11 @@
         }
 
         function drawEntities() {
-            // Dibujar Avatares
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 ctx.fillStyle = av.color;
                 ctx.fillRect(av.x * TILE_SIZE + 3, av.y * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6);
             }
-            // Dibujar Bárbaros (Rojo Oscuro / Naranja)
             for (let i = 0; i < barbarians.length; i++) {
                 let barb = barbarians[i];
                 ctx.fillStyle = '#ff4500';
@@ -337,23 +336,30 @@
                     document.getElementById('btn-agri').classList.add('unlocked');
                     document.getElementById('btn-agri').innerText = "🌾 Agríc. (✓)";
                 }
+            } else if (tech === 'bronze' && !technologies.bronze) {
+                if (inventory.stone >= 50 && inventory.gold >= 10) {
+                    inventory.stone -= 50;
+                    inventory.gold -= 10;
+                    technologies.bronze = true;
+                    inventory.pe += 150;
+                    document.getElementById('btn-bronze').classList.add('unlocked');
+                    document.getElementById('btn-bronze').innerText = "🛡️ Metal. (✓)";
+                }
             }
         }
 
         function updateGame() {
             gameTicks++;
-            // Cada 400 ticks (aprox 7 segundos), hay probabilidad de invasión si hay oro o progreso
             if (!invasionActive && gameTicks % 400 === 0 && inventory.pe > 30) {
                 if (Math.random() < 0.7) {
                     triggerInvasion();
                 }
             }
 
-            // Movimiento de Avatares
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 av.moveTimer++;
-                if (av.moveTimer > 45) {
+                if (av.moveTimer > 40) {
                     let dx = Math.floor(Math.random() * 3) - 1; 
                     let dy = Math.floor(Math.random() * 3) - 1;
                     let nx = av.x + dx;
@@ -366,7 +372,8 @@
                         let key = `${nx},${ny}`;
                         if (resources[key]) {
                             let resType = resources[key];
-                            let multiplier = technologies.flint ? 2 : 1;
+                            let multiplier = technologies.bronze ? 3 : (technologies.flint ? 2 : 1);
+
                             if (resType === 'wood') { inventory.wood += (5 * multiplier); inventory.pe += 2; }
                             if (resType === 'stone') { inventory.stone += (3 * multiplier); inventory.pe += 3; }
                             if (resType === 'gold') { inventory.gold += (1 * multiplier); inventory.pe += 10; }
@@ -377,13 +384,11 @@
                 }
             }
 
-            // Movimiento y Combate de Bárbaros
             if (invasionActive) {
                 for (let i = barbarians.length - 1; i >= 0; i--) {
                     let barb = barbarians[i];
                     barb.moveTimer++;
-                    if (barb.moveTimer > 40) {
-                        // Los bárbaros se mueven hacia el centro del mapa (aprox COLS/2, ROWS/2)
+                    if (barb.moveTimer > 35) {
                         let targetX = Math.floor(COLS / 2);
                         let targetY = Math.floor(ROWS / 2);
                         
@@ -395,14 +400,12 @@
                         barb.moveTimer = 0;
                     }
 
-                    // Verificar si un bárbaro colisiona con un avatar
                     for (let j = avatars.length - 1; j >= 0; j--) {
                         let av = avatars[j];
                         if (barb.x === av.x && barb.y === av.y) {
-                            // Si el jugador investigó Sílex, defiende y elimina al bárbaro; si no, pierde oro/recursos
-                            if (technologies.flint) {
-                                inventory.pe += 15; // Recompensa por defensa
-                                barbarians.splice(i, 1); // Bárbaro derrotado
+                            if (technologies.flint || technologies.bronze) {
+                                inventory.pe += 20;
+                                barbarians.splice(i, 1);
                             } else {
                                 if (inventory.gold > 0) inventory.gold--;
                                 else if (inventory.wood > 5) inventory.wood -= 5;
@@ -412,7 +415,6 @@
                     }
                 }
 
-                // Si los bárbaros llegan al centro o son derrotados, termina la incursión temporal
                 if (barbarians.length === 0) {
                     invasionActive = false;
                 }
@@ -428,8 +430,8 @@
             document.getElementById('lbl-pe').innerText = inventory.pe;
 
             let ageLabel = "Piedra";
-            if (inventory.pe >= 150) ageLabel = "Bronce";
-            if (inventory.pe >= 500) ageLabel = "Edad Media";
+            if (inventory.pe >= 200 || technologies.bronze) ageLabel = "Edad de Bronce";
+            if (inventory.pe >= 600) ageLabel = "Edad Media";
             document.getElementById('lbl-age').innerText = ageLabel;
 
             let statusElem = document.getElementById('lbl-status');
