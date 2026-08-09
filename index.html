@@ -93,10 +93,9 @@
         };
 
         let map = [];
-        let resources = {}; // Guardará recursos por coordenadas "x,y" -> tipo
+        let resources = {}; 
         let avatars = [];
 
-        // Inventario global del jugador
         let inventory = {
             wood: 0,
             stone: 0,
@@ -104,7 +103,6 @@
             pe: 0
         };
 
-        // --- 1. GENERAR MAPA Y RECURSOS ---
         function generateMap() {
             map = [];
             resources = {};
@@ -116,19 +114,17 @@
                     let tile = rand < 0.45 ? 0 : (rand < 0.75 ? 2 : (rand < 0.90 ? 3 : 4));
                     row.push(tile);
 
-                    // Distribuir recursos iniciales basados en el terreno
                     if (tile === 3 && Math.random() < 0.4) {
-                        resources[`${x},${y}`] = 'wood'; // Madera en bosques
+                        resources[`${x},${y}`] = 'wood';
                     } else if (tile === 4 && Math.random() < 0.5) {
-                        resources[`${x},${y}`] = 'stone'; // Piedra en montañas
+                        resources[`${x},${y}`] = 'stone';
                     } else if (tile === 2 && Math.random() < 0.05) {
-                        resources[`${x},${y}`] = 'gold'; // Oro escaso en llanuras
+                        resources[`${x},${y}`] = 'gold';
                     }
                 }
                 map.push(row);
             }
 
-            // Suavizado de continentes
             for(let p = 0; p < 3; p++) {
                 let newMap = [];
                 for (let y = 0; y < ROWS; y++) {
@@ -141,7 +137,6 @@
                 map = newMap;
             }
 
-            // Playas de arena
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
                     if (map[y][x] === 2 && hasNeighbor(x, y, 0)) {
@@ -186,7 +181,6 @@
             return false;
         }
 
-        // --- 2. SPAWN DE AVATARES ---
         function spawnAvatars() {
             avatars = [];
             let spawned = 0;
@@ -205,24 +199,22 @@
             }
         }
 
-        // --- 3. RENDERIZADO ---
         function drawMap() {
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
                     ctx.fillStyle = TERRAIN_COLORS[map[y][x]];
                     ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 
-                    // Dibujar recursos encima del terreno
                     let key = `${x},${y}`;
                     if (resources[key]) {
                         if (resources[key] === 'wood') {
-                            ctx.fillStyle = '#8b5a2b'; // Marrón madera
+                            ctx.fillStyle = '#8b5a2b';
                             ctx.fillRect(x * TILE_SIZE + 5, y * TILE_SIZE + 5, 6, 6);
                         } else if (resources[key] === 'stone') {
-                            ctx.fillStyle = '#aaaaaa'; // Gris piedra
+                            ctx.fillStyle = '#aaaaaa';
                             ctx.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 4, 8, 8);
                         } else if (resources[key] === 'gold') {
-                            ctx.fillStyle = '#ffd700'; // Oro brillante
+                            ctx.fillStyle = '#ffd700';
                             ctx.fillRect(x * TILE_SIZE + 6, y * TILE_SIZE + 6, 4, 4);
                         }
                     }
@@ -238,13 +230,12 @@
             }
         }
 
-        // --- 4. LÓGICA Y RECOLECCIÓN ---
         function updateAvatars() {
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 av.moveTimer++;
                 
-                if (av.moveTimer > 45) { // Se mueven un poco más fluido
+                if (av.moveTimer > 45) {
                     let dx = Math.floor(Math.random() * 3) - 1; 
                     let dy = Math.floor(Math.random() * 3) - 1;
                     
@@ -255,7 +246,6 @@
                         av.x = nx;
                         av.y = ny;
 
-                        // Verificar si hay un recurso en esta casilla para recolectar
                         let key = `${nx},${ny}`;
                         if (resources[key]) {
                             let resType = resources[key];
@@ -263,7 +253,6 @@
                             if (resType === 'stone') { inventory.stone += 3; inventory.pe += 3; }
                             if (resType === 'gold') { inventory.gold += 1; inventory.pe += 10; }
                             
-                            // Consumir el recurso del mapa
                             delete resources[key];
                         }
                     }
@@ -279,14 +268,12 @@
             document.getElementById('lbl-gold').innerText = inventory.gold;
             document.getElementById('lbl-pe').innerText = inventory.pe;
 
-            // Cambiar edad según puntaje (PE)
             let ageLabel = "Piedra";
             if (inventory.pe >= 101) ageLabel = "Bronce";
             if (inventory.pe >= 501) ageLabel = "Edad Media";
             document.getElementById('lbl-age').innerText = ageLabel;
         }
 
-        // --- BUCLE PRINCIPAL ---
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             updateAvatars();
@@ -295,7 +282,6 @@
             requestAnimationFrame(gameLoop);
         }
 
-        // --- INICIALIZACIÓN ---
         generateMap();
         spawnAvatars();
         gameLoop();
