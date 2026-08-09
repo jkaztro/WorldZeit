@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldZeit - Motor Robusto HD + Aldeanos</title>
+    <title>WorldZeit - Motor Robusto HD + Eras & Fauna</title>
     <style>
         :root {
             --bg-dark: #070709;
@@ -12,6 +12,7 @@
             --accent-green: #00ffcc;
             --accent-gold: #ffd700;
             --accent-warn: #ff4444;
+            --accent-era: #b8c2cc;
             --text-main: #d0d0d6;
         }
 
@@ -35,171 +36,78 @@
             display: flex;
             justify-content: space-between;
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
             align-items: center;
         }
 
-        h1 {
-            margin: 0;
-            font-size: 16px;
-            color: var(--accent-green);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        h1 { margin: 0; font-size: 16px; color: var(--accent-green); letter-spacing: 2px; text-transform: uppercase; }
 
         .dashboard {
-            display: flex;
-            gap: 15px;
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            padding: 8px 15px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            justify-content: center;
-            width: 100%;
-            max-width: 900px;
+            display: flex; gap: 15px; background: var(--panel-bg); border: 1px solid var(--border-color);
+            padding: 8px 15px; border-radius: 6px; font-size: 12px; font-weight: bold;
+            margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); justify-content: center;
+            width: 100%; max-width: 1000px; flex-wrap: wrap;
         }
 
         .resource-item span { color: var(--accent-gold); }
+        .era-item { color: var(--accent-era); font-size: 14px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
 
         .game-area {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 900px;
-            flex-grow: 1;
-            max-height: 600px;
+            display: flex; gap: 10px; width: 100%; max-width: 1000px; flex-grow: 1; max-height: 600px;
         }
 
         .canvas-container {
-            position: relative;
-            overflow: hidden;
-            border: 2px solid var(--border-color);
-            background: #0d0d11;
-            border-radius: 6px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: grab;
+            position: relative; overflow: hidden; border: 2px solid var(--border-color);
+            background: #0d0d11; border-radius: 6px; box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            flex-grow: 1; display: flex; justify-content: center; align-items: center; cursor: grab;
         }
 
-        canvas {
-            display: block;
-            transform-origin: 0 0;
-        }
+        canvas { display: block; transform-origin: 0 0; }
 
-        .sidebar {
-            width: 260px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: all 0.3s ease;
-        }
-
-        /* Clase para ocultar el menú lateral */
-        .sidebar.hidden {
-            display: none;
-        }
+        .sidebar { width: 280px; display: flex; flex-direction: column; gap: 10px; transition: all 0.3s ease; }
+        .sidebar.hidden { display: none; }
 
         .control-panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 8px;
-            font-size: 11px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            flex-grow: 1;
-            overflow-y: auto;
+            background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px;
+            padding: 8px; font-size: 11px; display: flex; flex-direction: column; gap: 5px;
+            flex-grow: 1; overflow-y: auto; max-height: 400px;
         }
 
         .control-panel strong {
-            color: var(--accent-green);
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 4px;
-            margin-bottom: 4px;
-            text-align: center;
-            display: block;
+            color: var(--accent-green); border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px; margin-bottom: 4px; text-align: center; display: block; margin-top: 5px;
         }
 
+        button { width: 100%; box-sizing: border-box; }
         button.btn-primary {
-            background: linear-gradient(135deg, #1f4037, #99f2c8);
-            color: #0c0c0e;
-            border: none;
-            padding: 6px;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s;
-            text-transform: uppercase;
-            font-size: 10px;
+            background: linear-gradient(135deg, #1f4037, #99f2c8); color: #0c0c0e; border: none;
+            padding: 6px; font-weight: bold; border-radius: 4px; cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s; text-transform: uppercase; font-size: 10px; margin-bottom: 3px;
         }
-
-        button.btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 0 8px var(--accent-green);
-        }
-
-        button.btn-civil {
-            background: linear-gradient(135deg, #3a2318, #d39572);
-            color: #110a05;
-        }
-
-        button.btn-civil:hover {
-            box-shadow: 0 0 8px #d39572;
-        }
-
-        button.btn-sm {
-            background: #1a1a24;
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            border-radius: 3px;
-            cursor: pointer;
-            padding: 4px 8px;
-            font-size: 11px;
-            font-weight: bold;
-            transition: background 0.2s;
-        }
-
-        button.btn-sm:hover {
-            background: var(--accent-green);
-            color: #000;
-        }
+        button.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 8px var(--accent-green); }
+        button.btn-civil { background: linear-gradient(135deg, #3a2318, #d39572); color: #110a05; }
+        button.btn-civil:hover { box-shadow: 0 0 8px #d39572; }
+        button.btn-animal { background: linear-gradient(135deg, #2c3e50, #3498db); color: #fff; }
+        button.btn-advance { background: linear-gradient(135deg, #8e44ad, #f1c40f); color: #000; font-size: 12px; padding: 8px; }
         
-        .list-container {
-            max-height: 100px;
-            overflow-y: auto;
-            border: 1px solid #1a1a24;
-            padding: 4px;
-            background: #0a0a0d;
+        button.btn-sm {
+            background: #1a1a24; color: var(--text-main); border: 1px solid var(--border-color);
+            border-radius: 3px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold;
         }
+        button.btn-sm:hover { background: var(--accent-green); color: #000; }
+        
+        .list-container { max-height: 90px; overflow-y: auto; border: 1px solid #1a1a24; padding: 4px; background: #0a0a0d; }
 
         #adviceBox {
-            width: 100%;
-            max-width: 900px;
-            margin-top: 10px;
-            background: #16130a;
-            border: 1px solid #4d3d00;
-            color: #ffda6a;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 11px;
-            text-align: center;
+            width: 100%; max-width: 1000px; margin-top: 10px; background: #16130a; border: 1px solid #4d3d00;
+            color: #ffda6a; padding: 8px; border-radius: 6px; font-size: 11px; text-align: center;
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div>
-            <button class="btn-sm" onclick="toggleMenu()">☰ Menú</button>
-        </div>
+        <div><button class="btn-sm" onclick="toggleMenu()">☰ Menú</button></div>
         <h1>WorldZeit // Advanced Core</h1>
         <div>
             <button class="btn-sm" onclick="zoomIn()">🔍 +</button>
@@ -208,11 +116,12 @@
     </header>
 
     <div class="dashboard" id="mainDashboard">
+        <div class="era-item">👑 <span id="eraVal">Edad de Piedra</span></div>
         <div class="resource-item">Año: <span id="yearVal">1</span></div>
-        <div class="resource-item">Oro: <span id="goldVal">150</span></div>
-        <div class="resource-item">Madera: <span id="woodVal">150</span></div>
-        <div class="resource-item">Comida: <span id="foodVal">150</span></div>
-        <div class="resource-item">Piedra: <span id="stoneVal">100</span></div>
+        <div class="resource-item">Oro: <span id="goldVal">300</span></div>
+        <div class="resource-item">Madera: <span id="woodVal">300</span></div>
+        <div class="resource-item">Comida: <span id="foodVal">300</span></div>
+        <div class="resource-item">Piedra: <span id="stoneVal">300</span></div>
     </div>
 
     <div class="game-area">
@@ -221,20 +130,8 @@
         </div>
 
         <div class="sidebar" id="sidebarMenu">
-            <div class="control-panel">
-                <strong>Construcción</strong>
-                <button class="btn-primary" onclick="build('Granja', 30, 20)">🌾 Granja (30M, 20P)</button>
-                <button class="btn-primary" onclick="build('Mina', 40, 40)">⛏️ Mina (40M, 40P)</button>
-                <button class="btn-primary" onclick="build('Muralla', 15, 25)">🧱 Muralla (15M, 25P)</button>
-                
-                <strong style="margin-top:10px;">Fuerzas Militares</strong>
-                <button class="btn-primary" onclick="recruit('militar', 30, 20)">⚔️ Soldado (30O, 20C)</button>
-                <button class="btn-primary" onclick="recruit('explorador', 20, 15)">👁️ Explorador (20O, 15C)</button>
-
-                <strong style="margin-top:10px;">Gestión de Aldeanos</strong>
-                <button class="btn-primary btn-civil" onclick="recruitCivilian('granjero', 40)">👨‍🌾 Granjero (40C)</button>
-                <button class="btn-primary btn-civil" onclick="recruitCivilian('leñador', 40)">🪓 Leñador (40C)</button>
-                <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 40)">⛏️ Minero (40C)</button>
+            <div class="control-panel" id="dynamicControls">
+                <!-- Se inyectan botones vía JS según la Era -->
             </div>
 
             <div class="control-panel">
@@ -246,233 +143,308 @@
     </div>
 
     <div id="adviceBox">
-        <strong>Reporte:</strong> El motor ha iniciado correctamente. Protege tu Ayuntamiento de las incursiones.
+        <strong>Reporte:</strong> Su majestad ha establecido el campamento inicial. Defiende al Rey.
     </div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
 
-        // Configuración de Motor
-        const MAP_SIZE = 40; 
-        const CELL_SIZE = 40; 
-        
+        const MAP_SIZE = 40; const CELL_SIZE = 40; 
         let camera = { x: 0, y: 0, zoom: 1.0 };
         let isDragging = false, startX, startY;
 
-        // Estado del Juego
-        let state = {
-            year: 1,
-            resources: { gold: 150, wood: 150, food: 150, stone: 100 },
-            terrain: [],
-            fog: [],
-            nature: { resources: [], wildlife: [] },
-            buildings: [ { id: 1, type: "Ayuntamiento", x: 20, y: 20, hp: 500, maxHp: 500 } ],
-            units: [
-                { id: 1, type: "civil", role: "leñador", x: 20, y: 21, hp: 100, targetX: 20, targetY: 22 },
-                { id: 2, type: "civil", role: "minero", x: 21, y: 20, hp: 100, targetX: 22, targetY: 20 }
-            ],
-            barbarians: [],
-            messages: "Estableciendo campamento base. Recluta aldeanos para fortalecer tu economía."
+        // Configuración de Eras y Edificios
+        const ERAS = [
+            { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0 } },
+            { name: "Edad de Bronce", req: { g: 200, w: 200, f: 200, s: 200 } },
+            { name: "Edad Medieval", req: { g: 500, w: 500, f: 500, s: 500 } },
+            { name: "Renacimiento", req: { g: 1000, w: 800, f: 800, s: 1000 } },
+            { name: "Edad Industrial", req: { g: 2000, w: 1500, f: 1500, s: 2000 } },
+            { name: "Imperial Moderna", req: { g: 4000, w: 3000, f: 3000, s: 4000 } },
+            { name: "Era Espacial", req: { g: 10000, w: 8000, f: 8000, s: 10000 } }
+        ];
+
+        const BLDG_DATA = {
+            "Torre": { era: 0, w: 30, s: 50, hp: 400 },
+            "Muralla": { era: 0, w: 10, s: 20, hp: 500 },
+            "Puerta": { era: 0, w: 20, s: 30, hp: 450 },
+            "Centro Urbano": { era: 1, w: 150, s: 150, hp: 800 },
+            "Granja": { era: 1, w: 40, s: 10, hp: 200 },
+            "Aserradero": { era: 1, w: 50, s: 20, hp: 250 },
+            "Mina": { era: 1, w: 50, s: 50, hp: 300 },
+            "Muelle": { era: 1, w: 60, s: 20, hp: 300 },
+            "Maravilla": { era: 1, w: 1000, s: 1000, hp: 2000 },
+            "Iglesia": { era: 2, w: 200, s: 300, hp: 600 },
+            "Castillo": { era: 2, w: 400, s: 600, hp: 1500 },
+            "Universidad": { era: 3, w: 300, s: 400, hp: 700 }
         };
 
-        // UI Toggle Menu
-        window.toggleMenu = function() {
-            const sidebar = document.getElementById('sidebarMenu');
-            sidebar.classList.toggle('hidden');
-        };
+        // Estado Global
+        let state = getInitialState();
 
-        // Generación del Mundo
+        function getInitialState() {
+            return {
+                eraIndex: 0, year: 1,
+                resources: { gold: 300, wood: 300, food: 300, stone: 300 },
+                terrain: [], fog: [], techs: [],
+                buildings: [ { id: 1, type: "Torre", x: 20, y: 20, hp: 400, maxHp: 400 } ],
+                units: [
+                    { id: 'king', type: 'rey', x: 20, y: 21, hp: 500, targetX: 20, targetY: 21 },
+                    { id: 1, type: "civil", role: "auto", x: 19, y: 20, hp: 100 }
+                ],
+                domesticAnimals: [], pets: [], wildAnimals: [], barbarians: [],
+                messages: "¡El Rey ha llegado! Protege su majestad."
+            };
+        }
+
         function initWorld() {
             state.terrain = Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0));
             state.fog = Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0)); 
-
             for (let y = 0; y < MAP_SIZE; y++) {
                 for (let x = 0; x < MAP_SIZE; x++) {
-                    if (y < 5) state.terrain[y][x] = 3; // Tundra
-                    else if (x < 3 || x > MAP_SIZE - 4 || y > MAP_SIZE - 4) state.terrain[y][x] = 7; // Agua
-                    else if (x > 25 && y > 15 && y < 25) state.terrain[y][x] = 2; // Desierto
-                    else if (y > 10 && y < 18 && x > 8 && x < 18) state.terrain[y][x] = 8; // Montaña
-                    else if (x > 5 && x < 15 && y > 22 && y < 32) state.terrain[y][x] = 1; // Bosque
-                    else state.terrain[y][x] = 0; // Llanura
+                    if (y < 5) state.terrain[y][x] = 3; else if (x < 3 || x > MAP_SIZE - 4 || y > MAP_SIZE - 4) state.terrain[y][x] = 7;
+                    else if (x > 25 && y > 15 && y < 25) state.terrain[y][x] = 2; else if (y > 10 && y < 18 && x > 8 && x < 18) state.terrain[y][x] = 8;
+                    else if (x > 5 && x < 15 && y > 22 && y < 32) state.terrain[y][x] = 1; else state.terrain[y][x] = 0;
                 }
             }
             respawnNature();
         }
 
         function respawnNature() {
-            state.nature.resources = [];
-            state.nature.wildlife = [];
+            state.nature = { resources: [] }; state.wildAnimals = [];
+            const wildTypes = ['🐻‍❄️', '🐺', '🐅', '🦁', '🐍', '🐊'];
             for (let y = 0; y < MAP_SIZE; y++) {
                 for (let x = 0; x < MAP_SIZE; x++) {
                     let t = state.terrain[y][x];
                     if (t === 1 && Math.random() < 0.4) state.nature.resources.push({x, y, type: 'arbol'});
                     if (t === 8 && Math.random() < 0.3) state.nature.resources.push({x, y, type: 'piedra'});
-                    
-                    if ((t === 0 || t === 1) && Math.random() < 0.03) {
-                        state.nature.wildlife.push({ x, y, type: 'lobo', hp: 40 });
+                    if ((t === 0 || t === 1) && Math.random() < 0.02 && Math.abs(x-20)>8 && Math.abs(y-20)>8) {
+                        state.wildAnimals.push({ x, y, icon: wildTypes[Math.floor(Math.random()*wildTypes.length)] });
                     }
                 }
             }
         }
 
-        function spawnBarbarians() {
-            let spawns = [{x: 5, y: 5}, {x: 35, y: 5}, {x: 5, y: 35}];
-            let p = spawns[Math.floor(Math.random() * spawns.length)];
-            state.barbarians.push({ id: Date.now(), x: p.x, y: p.y, hp: 100, attackTimer: 0 });
-            state.messages = "¡Atención! Se avistaron bárbaros en las fronteras.";
+        window.toggleMenu = () => document.getElementById('sidebarMenu').classList.toggle('hidden');
+
+        // Generar UI Dinámica
+        function renderDynamicUI() {
+            let html = "";
+            let nextEra = ERAS[state.eraIndex + 1];
+            
+            if (nextEra) {
+                html += `<button class="btn-primary btn-advance" onclick="advanceEra()">🌟 Avanzar a ${nextEra.name}<br>(O:${nextEra.req.g}, M:${nextEra.req.w}, C:${nextEra.req.f}, P:${nextEra.req.s})</button>`;
+            }
+
+            html += `<strong>Construcción</strong>`;
+            Object.keys(BLDG_DATA).forEach(bName => {
+                let b = BLDG_DATA[bName];
+                if (state.eraIndex >= b.era) {
+                    html += `<button class="btn-primary" onclick="build('${bName}', ${b.w}, ${b.s})">🏛️ ${bName} (${b.w}M, ${b.s}P)</button>`;
+                }
+            });
+
+            html += `<strong>Fuerzas Armadas</strong>
+                     <button class="btn-primary" onclick="recruit('soldado', 40, 20)">⚔️ Soldado (40O, 20C)</button>`;
+            if(state.eraIndex >= 1) html += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐎 Caballería (80O, 50C)</button>`;
+            html += `<button class="btn-primary" onclick="recruit('explorador', 30, 15)">👁️ Explorador/Espía (30O, 15C)</button>`;
+
+            html += `<strong>Aldeanos</strong>
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('auto', 40)">🔄 Auto-Asignar (40C)</button>
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('granjero', 50)">🌾 Granjero (50C)</button>
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('leñador', 50)">🪓 Leñador (50C)</button>
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 50)">⛏️ Minero (50C)</button>
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor (50C)</button>`;
+                     
+            if(state.eraIndex >= 1) {
+                html += `<strong>Ganadería</strong>
+                         <button class="btn-primary btn-animal" onclick="buyAnimal('🐔', 15)">🐔 Gallina (15O)</button>
+                         <button class="btn-primary btn-animal" onclick="buyAnimal('🐷', 30)">🐷 Cerdo (30O)</button>
+                         <button class="btn-primary btn-animal" onclick="buyAnimal('🐑', 40)">🐑 Oveja (40O)</button>
+                         <button class="btn-primary btn-animal" onclick="buyAnimal('🐄', 60)">🐄 Vaca (60O)</button>`;
+            }
+            
+            document.getElementById('dynamicControls').innerHTML = html;
         }
 
-        // Acciones del Jugador
+        // Acciones Reclutamiento y Compra
+        window.advanceEra = function() {
+            let req = ERAS[state.eraIndex + 1].req;
+            if (state.resources.gold >= req.g && state.resources.wood >= req.w && state.resources.food >= req.f && state.resources.stone >= req.s) {
+                state.resources.gold -= req.g; state.resources.wood -= req.w; state.resources.food -= req.f; state.resources.stone -= req.s;
+                state.eraIndex++;
+                state.pets.push({ x: 20, y: 20, icon: Math.random()>0.5?'🐕':'🐈' }); // Regalo por avanzar
+                state.messages = `¡Has avanzado a la ${ERAS[state.eraIndex].name}! Recibes una mascota como bendición.`;
+                document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
+                renderDynamicUI(); updateUI();
+            } else alert("Recursos insuficientes para avanzar de Era.");
+        }
+
         window.build = function(type, woodCost, stoneCost) {
             if (state.resources.wood >= woodCost && state.resources.stone >= stoneCost) {
-                state.resources.wood -= woodCost;
-                state.resources.stone -= stoneCost;
-                let th = state.buildings.find(b => b.type === 'Ayuntamiento') || state.buildings[0];
-                let offset = (type === 'Muralla') ? 3 : 2;
-                
-                state.buildings.push({
-                    id: Date.now(),
-                    type: type,
-                    x: th.x + Math.floor(Math.random() * (offset*2)) - offset,
-                    y: th.y + Math.floor(Math.random() * (offset*2)) - offset,
-                    hp: type === 'Muralla' ? 400 : 200,
-                    maxHp: type === 'Muralla' ? 400 : 200
-                });
+                state.resources.wood -= woodCost; state.resources.stone -= stoneCost;
+                let king = state.units.find(u => u.type === 'rey');
+                let bx = king ? king.x + (Math.floor(Math.random()*5)-2) : 20;
+                let by = king ? king.y + (Math.floor(Math.random()*5)-2) : 20;
+                state.buildings.push({ id: Date.now(), type: type, x: bx, y: by, hp: BLDG_DATA[type].hp, maxHp: BLDG_DATA[type].hp });
                 updateUI();
-            } else {
-                alert(`Requiere: ${woodCost} Madera, ${stoneCost} Piedra.`);
-            }
+            } else alert("Faltan recursos.");
         }
 
         window.recruit = function(type, goldCost, foodCost) {
             if (state.resources.gold >= goldCost && state.resources.food >= foodCost) {
-                state.resources.gold -= goldCost;
-                state.resources.food -= foodCost;
-                let th = state.buildings.find(b => b.type === 'Ayuntamiento');
-                if(!th) return alert("No tienes Ayuntamiento.");
-
-                state.units.push({
-                    id: Date.now(),
-                    type: type,
-                    x: th.x, y: th.y + 1,
-                    hp: type === 'militar' ? 150 : 80,
-                    targetX: th.x, targetY: th.y + 1
-                });
+                state.resources.gold -= goldCost; state.resources.food -= foodCost;
+                let king = state.units.find(u => u.type === 'rey');
+                state.units.push({ id: Date.now(), type: type, x: king.x, y: king.y, hp: type==='caballeria'?200:100, traitor: false });
                 updateUI();
-            } else {
-                alert(`Requiere: ${goldCost} Oro, ${foodCost} Comida.`);
             }
         }
 
-        // Reclutar y gestionar aldeanos
         window.recruitCivilian = function(role, foodCost) {
             if (state.resources.food >= foodCost) {
                 state.resources.food -= foodCost;
-                let th = state.buildings.find(b => b.type === 'Ayuntamiento');
-                if(!th) return alert("No tienes Ayuntamiento.");
-
-                state.units.push({
-                    id: Date.now(),
-                    type: 'civil',
-                    role: role,
-                    x: th.x + Math.floor(Math.random() * 3) - 1, 
-                    y: th.y + Math.floor(Math.random() * 3) - 1,
-                    hp: 50,
-                    targetX: th.x, targetY: th.y
-                });
+                let king = state.units.find(u => u.type === 'rey');
+                state.units.push({ id: Date.now(), type: 'civil', role: role, x: king.x, y: king.y, hp: 60 });
                 updateUI();
-            } else {
-                alert(`Requiere: ${foodCost} Comida.`);
             }
         }
 
-        // Lógica de Juego (1 Tick = 1 Segundo)
-        function gameLogicTick() {
-            // Economía de Edificios
-            state.buildings.forEach(b => {
-                if(b.type === 'Granja') state.resources.food += 0.5;
-                if(b.type === 'Mina') { state.resources.stone += 0.4; state.resources.gold += 0.1; }
-            });
+        window.buyAnimal = function(icon, goldCost) {
+            if(state.resources.gold >= goldCost) {
+                state.resources.gold -= goldCost;
+                let farm = state.buildings.find(b => b.type === 'Granja') || state.buildings[0];
+                state.domesticAnimals.push({ x: farm.x, y: farm.y, icon: icon });
+            }
+        }
 
-            // Economía y Gestión de Aldeanos
+        // Reinicio si el Rey Muere
+        function resetCivilization() {
+            alert("👑 ¡EL REY HA MUERTO! La civilización ha colapsado. Escapando a nuevas tierras...");
+            state = getInitialState();
+            state.eraIndex = Math.max(0, state.eraIndex - 1);
+            document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
+            initWorld();
+            renderDynamicUI();
+        }
+
+        // Lógica de Juego Principal
+        function gameLogicTick() {
+            let rey = state.units.find(u => u.type === 'rey');
+            if(!rey) { resetCivilization(); return; }
+
+            // Economía Edificios
+            let mod = 1 + (state.eraIndex * 0.2); // Bonificador por era
+            state.buildings.forEach(b => {
+                if(b.type === 'Granja') state.resources.food += 1 * mod;
+                if(b.type === 'Mina') { state.resources.stone += 0.8 * mod; state.resources.gold += 0.3 * mod; }
+                if(b.type === 'Aserradero') state.resources.wood += 1 * mod;
+            });
+            // Comida de animales
+            state.resources.food += (state.domesticAnimals.length * 0.2);
+
+            // IA Unidades
             state.units.forEach(u => {
                 if(u.type === 'civil') {
-                    if(u.role === 'leñador') state.resources.wood += 0.4;
-                    if(u.role === 'minero') { state.resources.stone += 0.3; state.resources.gold += 0.2; }
-                    if(u.role === 'granjero') state.resources.food += 0.6;
-                    
-                    // Movimiento errático alrededor de la base para simular trabajo
-                    if(Math.random() < 0.2) {
-                        u.x += Math.floor(Math.random() * 3) - 1;
-                        u.y += Math.floor(Math.random() * 3) - 1;
+                    if(u.role === 'auto') {
+                        // Lógica Auto-asignación simple
+                        let minRes = Math.min(state.resources.food, state.resources.wood, state.resources.stone);
+                        if(minRes === state.resources.food) u.role = 'granjero';
+                        else if(minRes === state.resources.wood) u.role = 'leñador';
+                        else u.role = 'minero';
+                    }
+                    if(u.role === 'leñador') state.resources.wood += 0.5 * mod;
+                    if(u.role === 'minero') { state.resources.stone += 0.4 * mod; state.resources.gold += 0.2 * mod; }
+                    if(u.role === 'granjero' || u.role === 'pescador') state.resources.food += 0.6 * mod;
+                    if(Math.random() < 0.2) { u.x += Math.floor(Math.random()*3)-1; u.y += Math.floor(Math.random()*3)-1; }
+                }
+                
+                if (u.type === 'explorador') {
+                    if(Math.random() < 0.005) { u.traitor = true; state.messages = "¡Sospechas de un espía traidor!"; }
+                    if(u.traitor) {
+                        // Traidor revela posición guiando bárbaros
+                        let barb = state.barbarians[0];
+                        if(barb) {
+                            if(u.x < rey.x) u.x++; else u.x--;
+                            if(barb.x < u.x) barb.x++;
+                        }
+                    } else {
+                        u.x += Math.floor(Math.random()*5)-2; u.y += Math.floor(Math.random()*5)-2; // Exploración rápida
+                    }
+                }
+                
+                if (u.type === 'soldado' || u.type === 'caballeria') {
+                    let spd = u.type === 'caballeria' ? 2 : 1;
+                    let target = state.barbarians.find(b => Math.abs(b.x - u.x) <= 6);
+                    if (target) {
+                        if(target.x > u.x) u.x+=spd; else if(target.x < u.x) u.x-=spd;
+                        if(target.y > u.y) u.y+=spd; else if(target.y < u.y) u.y-=spd;
+                        if(Math.abs(target.x - u.x) <= 1) target.hp -= (u.type==='caballeria'?50:30);
+                    }
+                }
+                
+                // Rey se mueve levemente
+                if(u.type === 'rey' && Math.random() < 0.1) {
+                    u.x += Math.floor(Math.random()*3)-1; u.y += Math.floor(Math.random()*3)-1;
+                }
+                
+                // Limitar mapa
+                u.x = Math.max(0, Math.min(MAP_SIZE - 1, u.x)); u.y = Math.max(0, Math.min(MAP_SIZE - 1, u.y));
+            });
+
+            // IA Animales Salvajes
+            state.wildAnimals.forEach(w => {
+                let tc = state.buildings.find(b => b.type === 'Centro Urbano' || b.type === 'Torre');
+                if(tc && Math.abs(w.x - tc.x) < 5) {
+                    // Huir de ciudad
+                    w.x += (w.x > tc.x) ? 1 : -1; w.y += (w.y > tc.y) ? 1 : -1;
+                } else {
+                    let civil = state.units.find(u => u.type === 'civil' && Math.abs(u.x - w.x) <= 2);
+                    let dog = state.pets.find(p => p.icon === '🐕' && Math.abs(p.x - w.x) <= 3);
+                    if (dog || state.units.find(u => (u.type==='soldado'||u.type==='caballeria') && Math.abs(u.x-w.x)<=3)) {
+                        w.x += (w.x > rey.x) ? 1 : -1; // Ahuyentado
+                    } else if (civil) {
+                        civil.hp -= 10; state.messages = "¡Animales salvajes atacan aldeanos!";
+                    } else if(Math.random() < 0.3) {
+                        w.x += Math.floor(Math.random()*3)-1; w.y += Math.floor(Math.random()*3)-1;
                     }
                 }
             });
 
-            // IA Bárbaros
-            let th = state.buildings.find(b => b.type === 'Ayuntamiento');
+            // IA Mascotas y Animales Domésticos
+            state.domesticAnimals.forEach(d => { if(Math.random()<0.1) {d.x += Math.floor(Math.random()*3)-1; d.y += Math.floor(Math.random()*3)-1;} });
+            state.pets.forEach(p => { 
+                let target = p.icon === '🐕' ? state.domesticAnimals[0] || rey : rey; 
+                if(target) { if(p.x < target.x) p.x++; else if(p.x > target.x) p.x--; if(p.y < target.y) p.y++; else if(p.y > target.y) p.y--; }
+            });
+
+            // Bárbaros atacan Rey o Edificios
             state.barbarians.forEach(b => {
-                if(!th) return;
-                
+                // Las puertas no bloquean a los aliados (ya gestionado por no chequear colisión aliada)
+                let gate = state.buildings.find(bldg => bldg.type === 'Puerta' && Math.abs(bldg.x - b.x) <= 1 && Math.abs(bldg.y - b.y) <= 1);
                 let targetBldg = state.buildings.find(bldg => Math.abs(bldg.x - b.x) <= 1 && Math.abs(bldg.y - b.y) <= 1);
                 
-                if (targetBldg) {
-                    targetBldg.hp -= 15; 
-                } else {
-                    if(b.x < th.x) b.x++; else if(b.x > th.x) b.x--;
-                    if(b.y < th.y) b.y++; else if(b.y > th.y) b.y--;
-                }
+                if(targetBldg) targetBldg.hp -= 20; 
+                else if (rey) { if(b.x < rey.x) b.x++; else if(b.x > rey.x) b.x--; if(b.y < rey.y) b.y++; else if(b.y > rey.y) b.y--; }
+                
+                if(Math.abs(rey.x - b.x) <= 1 && Math.abs(rey.y - b.y) <= 1) rey.hp -= 25;
             });
 
-            // IA Militar y Exploradores
-            state.units.forEach(u => {
-                if (u.type === 'militar') {
-                    let target = state.barbarians.find(b => Math.abs(b.x - u.x) <= 5 && Math.abs(b.y - u.y) <= 5);
-                    if (target) {
-                        if(target.x > u.x) u.x++; else if(target.x < u.x) u.x--;
-                        if(target.y > u.y) u.y++; else if(target.y < u.y) u.y--;
-                        if(Math.abs(target.x - u.x) <= 1 && Math.abs(target.y - u.y) <= 1) target.hp -= 30;
-                    }
-                } else if (u.type === 'explorador') {
-                    if(Math.random() < 0.6) {
-                        u.x += Math.floor(Math.random() * 3) - 1;
-                        u.y += Math.floor(Math.random() * 3) - 1;
-                        u.x = Math.max(0, Math.min(MAP_SIZE - 1, u.x));
-                        u.y = Math.max(0, Math.min(MAP_SIZE - 1, u.y));
-                    }
-                }
-            });
-
-            // IA Fauna 
-            state.nature.wildlife.forEach(w => {
-                if(Math.random() < 0.3) {
-                    w.x += Math.floor(Math.random() * 3) - 1;
-                    w.y += Math.floor(Math.random() * 3) - 1;
-                }
-            });
-
-            // Limpieza de entidades muertas
+            // Limpieza
             state.barbarians = state.barbarians.filter(b => b.hp > 0);
-            let destroyedBldgs = state.buildings.filter(b => b.hp <= 0);
-            if(destroyedBldgs.length > 0) {
-                state.messages = "¡Un edificio ha sido destruido!";
-                if(destroyedBldgs.find(b => b.type === 'Ayuntamiento')) state.messages = "¡EL AYUNTAMIENTO HA CAÍDO! Fin del imperio.";
-            }
             state.buildings = state.buildings.filter(b => b.hp > 0);
             state.units = state.units.filter(u => u.hp > 0);
+            if (state.barbarians.length < (1 + state.eraIndex) && Math.random() < 0.1) {
+                state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 100 + (state.eraIndex*50) });
+            }
 
-            if (state.barbarians.length < 2 && Math.random() < 0.05) spawnBarbarians();
-
-            updateVision();
-            updateUI();
+            updateVision(); updateUI();
         }
 
         function updateVision() {
             for(let y=0; y<MAP_SIZE; y++) for(let x=0; x<MAP_SIZE; x++) if(state.fog[y][x] === 2) state.fog[y][x] = 1;
-            
             state.units.forEach(u => {
-                let range = u.type === 'explorador' ? 8 : (u.type === 'militar' ? 4 : 2);
+                let range = u.type === 'explorador' ? 10 : (u.type === 'rey' ? 6 : 3);
                 for(let dy = -range; dy <= range; dy++) {
                     for(let dx = -range; dx <= range; dx++) {
                         let ny = u.y + dy, nx = u.x + dx;
@@ -480,92 +452,65 @@
                     }
                 }
             });
-            
-            state.buildings.forEach(b => {
-                let range = b.type === 'Ayuntamiento' ? 6 : 2;
-                for(let dy = -range; dy <= range; dy++) {
-                    for(let dx = -range; dx <= range; dx++) {
-                        let ny = b.y + dy, nx = b.x + dx;
-                        if(ny >= 0 && ny < MAP_SIZE && nx >= 0 && nx < MAP_SIZE) state.fog[ny][nx] = 2;
-                    }
-                }
-            });
         }
 
-        // Bucle de Renderizado
         function renderLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.save();
-            ctx.translate(camera.x, camera.y);
-            ctx.scale(camera.zoom, camera.zoom);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.save();
+            ctx.translate(camera.x, camera.y); ctx.scale(camera.zoom, camera.zoom);
 
             const colors = { 0: "#253b25", 1: "#152d15", 2: "#b5a375", 3: "#c5d7f5", 7: "#123048", 8: "#6c7a89" };
             for (let y = 0; y < MAP_SIZE; y++) {
                 for (let x = 0; x < MAP_SIZE; x++) {
-                    ctx.fillStyle = colors[state.terrain[y][x]] || "#000";
-                    ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    ctx.strokeStyle = "rgba(0,0,0,0.1)";
-                    ctx.strokeRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    ctx.fillStyle = colors[state.terrain[y][x]] || "#000"; ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
+                    ctx.strokeStyle = "rgba(0,0,0,0.1)"; ctx.strokeRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
                 }
             }
 
             state.nature.resources.forEach(res => {
-                let rx = (res.x + 0.5) * CELL_SIZE, ry = (res.y + 0.5) * CELL_SIZE;
                 ctx.fillStyle = res.type === 'arbol' ? '#2ecc71' : '#95a5a6';
-                ctx.beginPath(); ctx.arc(rx, ry, res.type === 'arbol'? 8 : 5, 0, Math.PI*2); ctx.fill();
-            });
-
-            state.nature.wildlife.forEach(w => {
-                ctx.fillStyle = "#e67e22";
-                ctx.beginPath(); ctx.arc((w.x + 0.5) * CELL_SIZE, (w.y + 0.5) * CELL_SIZE, 5, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc((res.x+0.5)*CELL_SIZE, (res.y+0.5)*CELL_SIZE, res.type==='arbol'?8:5, 0, Math.PI*2); ctx.fill();
             });
 
             state.buildings.forEach(b => {
                 let bx = b.x * CELL_SIZE, by = b.y * CELL_SIZE;
-                ctx.fillStyle = b.type === 'Ayuntamiento' ? '#8e44ad' : b.type === 'Granja' ? '#27ae60' : b.type === 'Muralla' ? '#7f8c8d' : '#d35400';
+                ctx.fillStyle = b.type.includes('Centro')||b.type.includes('Castillo')||b.type.includes('Torre') ? '#8e44ad' : b.type==='Muralla'||b.type==='Puerta' ? '#7f8c8d' : '#27ae60';
+                if(b.type === 'Puerta') ctx.fillStyle = '#9b59b6'; // Distinguir puerta
                 ctx.fillRect(bx + 2, by + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-                
                 ctx.fillStyle = "red"; ctx.fillRect(bx + 4, by - 6, CELL_SIZE - 8, 4);
                 ctx.fillStyle = "#0f0"; ctx.fillRect(bx + 4, by - 6, (CELL_SIZE - 8) * (b.hp / b.maxHp), 4);
             });
 
+            ctx.font = "20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+            state.wildAnimals.forEach(w => ctx.fillText(w.icon, (w.x+0.5)*CELL_SIZE, (w.y+0.5)*CELL_SIZE));
+            state.domesticAnimals.forEach(d => ctx.fillText(d.icon, (d.x+0.5)*CELL_SIZE, (d.y+0.5)*CELL_SIZE));
+            state.pets.forEach(p => ctx.fillText(p.icon, (p.x+0.5)*CELL_SIZE, (p.y+0.5)*CELL_SIZE));
+
             state.barbarians.forEach(b => {
-                let bx = (b.x + 0.5) * CELL_SIZE, by = (b.y + 0.5) * CELL_SIZE;
-                ctx.fillStyle = "#ff4444";
-                ctx.beginPath(); ctx.arc(bx, by, 9, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = "#ff4444"; ctx.beginPath(); ctx.arc((b.x+0.5)*CELL_SIZE, (b.y+0.5)*CELL_SIZE, 9, 0, Math.PI*2); ctx.fill();
             });
 
             state.units.forEach(u => {
-                let ux = (u.x + 0.5) * CELL_SIZE, uy = (u.y + 0.5) * CELL_SIZE;
-                // Diferenciar colores según rol si es civil
-                if (u.type === 'civil') {
-                    ctx.fillStyle = u.role === 'granjero' ? '#f1c40f' : u.role === 'leñador' ? '#1abc9c' : '#bdc3c7';
+                if(u.type === 'rey') {
+                    ctx.fillText('👑', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
+                    ctx.fillStyle = "red"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, CELL_SIZE-8, 4);
+                    ctx.fillStyle = "#0f0"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, (CELL_SIZE-8)*(u.hp/500), 4);
                 } else {
-                    ctx.fillStyle = u.type === 'militar' ? '#3498db' : '#e67e22'; // Explorador
+                    ctx.fillStyle = u.type === 'civil' ? (u.role==='granjero'?'#f1c40f':'#bdc3c7') : u.type==='caballeria'?'#9b59b6':(u.type==='soldado'?'#3498db':(u.traitor?'#e74c3c':'#e67e22'));
+                    ctx.beginPath(); ctx.arc((u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE, u.type==='caballeria'?9:7, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = "#fff"; ctx.stroke();
                 }
-                
-                ctx.beginPath(); ctx.arc(ux, uy, 7, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = "#fff"; ctx.stroke();
             });
 
-            // Niebla
             for(let y=0; y<MAP_SIZE; y++) {
                 for(let x=0; x<MAP_SIZE; x++) {
-                    if(state.fog[y][x] === 0) {
-                        ctx.fillStyle = "rgba(5, 5, 8, 0.9)";
-                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    } else if(state.fog[y][x] === 1) {
-                        ctx.fillStyle = "rgba(5, 5, 8, 0.5)";
-                        ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    }
+                    if(state.fog[y][x] === 0) { ctx.fillStyle = "rgba(5, 5, 8, 0.9)"; ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE); }
+                    else if(state.fog[y][x] === 1) { ctx.fillStyle = "rgba(5, 5, 8, 0.5)"; ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE); }
                 }
             }
 
-            ctx.restore();
-            requestAnimationFrame(renderLoop);
+            ctx.restore(); requestAnimationFrame(renderLoop);
         }
 
-        // Actualización de Interfaz
         function updateUI() {
             document.getElementById("goldVal").innerText = Math.floor(state.resources.gold);
             document.getElementById("woodVal").innerText = Math.floor(state.resources.wood);
@@ -573,47 +518,29 @@
             document.getElementById("stoneVal").innerText = Math.floor(state.resources.stone);
             document.getElementById("adviceBox").innerHTML = `<strong>Reporte:</strong> ${state.messages}`;
 
-            let bHtml = "";
-            state.buildings.forEach(b => bHtml += `<div>🏛️ ${b.type} (${b.hp} HP)</div>`);
+            let bHtml = ""; state.buildings.forEach(b => bHtml += `<div>🏛️ ${b.type} (${b.hp} HP)</div>`);
             document.getElementById("buildingsControl").innerHTML = bHtml;
 
             let uHtml = "";
-            state.units.forEach(u => {
-                let name = u.type === 'civil' ? `Aldeano (${u.role})` : u.type;
-                uHtml += `<div>• ${name} (${u.hp} HP)</div>`;
-            });
+            let rey = state.units.find(u=>u.type==='rey'); if(rey) uHtml += `<div style="color:gold">👑 Rey (${rey.hp} HP)</div>`;
+            state.units.filter(u=>u.type!=='rey').forEach(u => uHtml += `<div>• ${u.type==='civil'?`Aldeano (${u.role})`:u.type}</div>`);
             document.getElementById("unitsControl").innerHTML = uHtml;
         }
 
-        // Controles de Cámara
         window.zoomIn = () => camera.zoom = Math.min(camera.zoom + 0.2, 2.5);
         window.zoomOut = () => camera.zoom = Math.max(camera.zoom - 0.2, 0.5);
 
         const container = document.getElementById("canvasContainer");
-        container.addEventListener("mousedown", e => {
-            isDragging = true;
-            startX = e.clientX - camera.x; startY = e.clientY - camera.y;
-            container.style.cursor = "grabbing";
-        });
-        window.addEventListener("mousemove", e => {
-            if(!isDragging) return;
-            camera.x = e.clientX - startX; camera.y = e.clientY - startY;
-        });
-        window.addEventListener("mouseup", () => {
-            isDragging = false; container.style.cursor = "grab";
-        });
-        container.addEventListener("mouseleave", () => {
-            isDragging = false; container.style.cursor = "grab";
-        });
+        container.addEventListener("mousedown", e => { isDragging = true; startX = e.clientX - camera.x; startY = e.clientY - camera.y; container.style.cursor = "grabbing"; });
+        window.addEventListener("mousemove", e => { if(isDragging) { camera.x = e.clientX - startX; camera.y = e.clientY - startY; } });
+        window.addEventListener("mouseup", () => { isDragging = false; container.style.cursor = "grab"; });
+        container.addEventListener("mouseleave", () => { isDragging = false; container.style.cursor = "grab"; });
 
         // Inicialización
-        initWorld();
-        updateVision();
-        updateUI();
-        
+        initWorld(); renderDynamicUI(); updateVision(); updateUI();
         setInterval(() => { state.year++; document.getElementById("yearVal").innerText = state.year; }, 10000);
-        setInterval(gameLogicTick, 1000); // Lógica a 1 tick por segundo
-        requestAnimationFrame(renderLoop); // Gráficos fluidos
+        setInterval(gameLogicTick, 1000);
+        requestAnimationFrame(renderLoop);
     </script>
 </body>
 </html>
