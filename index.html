@@ -9,6 +9,7 @@
             --bg-color: #121212;
             --text-color: #ffffff;
             --accent-color: #00ff88;
+            --danger-color: #ff3333;
             --panel-bg: #1e1e1e;
             --btn-bg: #2a2a2a;
         }
@@ -67,8 +68,19 @@
             color: var(--accent-color);
         }
 
+        .danger-highlight {
+            color: var(--danger-color);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
         #tech-panel {
-            margin-top: 10px;
+            margin-top: 8px;
             display: flex;
             gap: 6px;
             flex-wrap: wrap;
@@ -102,9 +114,9 @@
         <canvas id="gameCanvas" width="320" height="320"></canvas>
         <div id="ui-panel">
             Edad: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span><br>
-            🪵 Madera: <span id="lbl-wood">0</span> | 🪨 Piedra: <span id="lbl-stone">0</span> | 🪙 Oro: <span id="lbl-gold">0</span>
+            🪵 Madera: <span id="lbl-wood">0</span> | 🪨 Piedra: <span id="lbl-stone">0</span> | 🪙 Oro: <span id="lbl-gold">0</span><br>
+            Estado: <span class="stat-highlight" id="lbl-status">Paz en el territorio</span>
         </div>
-        <!-- Panel de Tecnologías táctil para móvil -->
         <div id="tech-panel">
             <button class="tech-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego (20 Mad)</button>
             <button class="tech-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex (30 Pie)</button>
@@ -131,6 +143,7 @@
         let map = [];
         let resources = {}; 
         let avatars = [];
+        let barbarians = [];
 
         let inventory = {
             wood: 0,
@@ -144,6 +157,9 @@
             flint: false,
             agri: false
         };
+
+        let gameTicks = 0;
+        let invasionActive = false;
 
         function generateMap() {
             map = [];
@@ -241,6 +257,22 @@
             }
         }
 
+        function triggerInvasion() {
+            invasionActive = true;
+            barbarians = [];
+            // Aparecen 2 o 3 bárbaros en los bordes del mapa
+            let count = 2 + Math.floor(Math.random() * 2);
+            for(let i = 0; i < count; i++) {
+                let bx = Math.random() < 0.5 ? 0 : COLS - 1;
+                let by = Math.floor(Math.random() * ROWS);
+                barbarians.push({
+                    x: bx,
+                    y: by,
+                    moveTimer: 0
+                });
+            }
+        }
+
         function drawMap() {
             for (let y = 0; y < ROWS; y++) {
                 for (let x = 0; x < COLS; x++) {
@@ -264,11 +296,18 @@
             }
         }
 
-        function drawAvatars() {
+        function drawEntities() {
+            // Dibujar Avatares
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 ctx.fillStyle = av.color;
                 ctx.fillRect(av.x * TILE_SIZE + 3, av.y * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6);
+            }
+            // Dibujar Bárbaros (Rojo Oscuro / Naranja)
+            for (let i = 0; i < barbarians.length; i++) {
+                let barb = barbarians[i];
+                ctx.fillStyle = '#ff4500';
+                ctx.fillRect(barb.x * TILE_SIZE + 3, barb.y * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6);
             }
         }
 
@@ -301,15 +340,22 @@
             }
         }
 
-        function updateAvatars() {
+        function updateGame() {
+            gameTicks++;
+            // Cada 400 ticks (aprox 7 segundos), hay probabilidad de invasión si hay oro o progreso
+            if (!invasionActive && gameTicks % 400 === 0 && inventory.pe > 30) {
+                if (Math.random() < 0.7) {
+                    triggerInvasion();
+                }
+            }
+
+            // Movimiento de Avatares
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 av.moveTimer++;
-                
                 if (av.moveTimer > 45) {
                     let dx = Math.floor(Math.random() * 3) - 1; 
                     let dy = Math.floor(Math.random() * 3) - 1;
-                    
                     let nx = av.x + dx;
                     let ny = av.y + dy;
                     
@@ -320,19 +366,58 @@
                         let key = `${nx},${ny}`;
                         if (resources[key]) {
                             let resType = resources[key];
-                            // Si se investigó Sílex, los recursos recolectados se multiplican x2
                             let multiplier = technologies.flint ? 2 : 1;
-
                             if (resType === 'wood') { inventory.wood += (5 * multiplier); inventory.pe += 2; }
                             if (resType === 'stone') { inventory.stone += (3 * multiplier); inventory.pe += 3; }
                             if (resType === 'gold') { inventory.gold += (1 * multiplier); inventory.pe += 10; }
-                            
                             delete resources[key];
                         }
                     }
                     av.moveTimer = 0;
                 }
             }
+
+            // Movimiento y Combate de Bárbaros
+            if (invasionActive) {
+                for (let i = barbarians.length - 1; i >= 0; i--) {
+                    let barb = barbarians[i];
+                    barb.moveTimer++;
+                    if (barb.moveTimer > 40) {
+                        // Los bárbaros se mueven hacia el centro del mapa (aprox COLS/2, ROWS/2)
+                        let targetX = Math.floor(COLS / 2);
+                        let targetY = Math.floor(ROWS / 2);
+                        
+                        if (barb.x < targetX) barb.x++;
+                        else if (barb.x > targetX) barb.x--;
+                        if (barb.y < targetY) barb.y++;
+                        else if (barb.y > targetY) barb.y--;
+
+                        barb.moveTimer = 0;
+                    }
+
+                    // Verificar si un bárbaro colisiona con un avatar
+                    for (let j = avatars.length - 1; j >= 0; j--) {
+                        let av = avatars[j];
+                        if (barb.x === av.x && barb.y === av.y) {
+                            // Si el jugador investigó Sílex, defiende y elimina al bárbaro; si no, pierde oro/recursos
+                            if (technologies.flint) {
+                                inventory.pe += 15; // Recompensa por defensa
+                                barbarians.splice(i, 1); // Bárbaro derrotado
+                            } else {
+                                if (inventory.gold > 0) inventory.gold--;
+                                else if (inventory.wood > 5) inventory.wood -= 5;
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                // Si los bárbaros llegan al centro o son derrotados, termina la incursión temporal
+                if (barbarians.length === 0) {
+                    invasionActive = false;
+                }
+            }
+
             updateUI();
         }
 
@@ -346,13 +431,22 @@
             if (inventory.pe >= 150) ageLabel = "Bronce";
             if (inventory.pe >= 500) ageLabel = "Edad Media";
             document.getElementById('lbl-age').innerText = ageLabel;
+
+            let statusElem = document.getElementById('lbl-status');
+            if (invasionActive) {
+                statusElem.innerText = "¡INVASIÓN BÁRBARA!";
+                statusElem.className = "danger-highlight";
+            } else {
+                statusElem.innerText = "Paz en el territorio";
+                statusElem.className = "stat-highlight";
+            }
         }
 
         function gameLoop() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            updateAvatars();
+            updateGame();
             drawMap();
-            drawAvatars();
+            drawEntities();
             requestAnimationFrame(gameLoop);
         }
 
