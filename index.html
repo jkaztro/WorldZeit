@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>WorldZeit - Evolución</title>
+    <title>WorldZeit - Civilización</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -120,7 +120,7 @@
         <canvas id="gameCanvas" width="320" height="320"></canvas>
         <div id="ui-panel">
             Era: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span> | Pop: <span id="lbl-pop">2</span><br>
-            🪵 M: <span id="lbl-wood">0</span> | 🪨 P: <span id="lbl-stone">0</span> | 🪙 O: <span id="lbl-gold">0</span><br>
+            🪵 M: <span id="lbl-wood">100</span> | 🪨 P: <span id="lbl-stone">100</span> | 🪙 O: <span id="lbl-gold">0</span><br>
             Estado: <span class="stat-highlight" id="lbl-status">Paz en el territorio</span>
         </div>
         <div id="control-panels">
@@ -135,13 +135,23 @@
                 <button class="action-btn" id="btn-steel" onclick="researchTech('steel')">⚔️ Acero(80P,30O)</button>
             </div>
             <div class="button-row">
+                <button class="action-btn" onclick="buildStructure('towncenter')">🏛️ C.Urbano(50M,50P)</button>
                 <button class="action-btn" onclick="buildStructure('hut')">⛺ Cabaña(30M,15P)</button>
-                <button class="action-btn" onclick="buildStructure('wall')">🧱 Muralla(20P)</button>
-                <button class="action-btn" onclick="buildStructure('tower')">🏹 Torre(40P,10M)</button>
+                <button class="action-btn" onclick="buildStructure('farm')">🌾 Granja(20M,10P)</button>
             </div>
             <div class="button-row">
-                <button class="action-btn" onclick="buildStructure('lumber')">🌲 Camp.(25M)</button>
-                <button class="action-btn" onclick="buildStructure('quarry')">⛏️ Cantera(25P)</button>
+                <button class="action-btn" onclick="buildStructure('market')">⚖️ Mercado(30M,20P)</button>
+                <button class="action-btn" onclick="buildStructure('tower')">🏹 Torre(40P,10M)</button>
+                <button class="action-btn" onclick="buildStructure('wall')">🧱 Muralla(20P)</button>
+            </div>
+            <div class="button-row">
+                <button class="action-btn" onclick="trainUnit('explorer')">🧭 Explorador(15M)</button>
+                <button class="action-btn" onclick="trainUnit('infantry')">⚔️ Infantería(20M,10P)</button>
+                <button class="action-btn" onclick="trainUnit('cavalry')">🐎 Caballería(30M,20O)</button>
+            </div>
+            <div class="button-row">
+                <button class="action-btn" onclick="tradeResources('woodToGold')">⚖️ 20M->1O</button>
+                <button class="action-btn" onclick="tradeResources('stoneToGold')">⚖️ 20P->1O</button>
             </div>
         </div>
     </div>
@@ -169,8 +179,8 @@
         let barbarians = [];
 
         let inventory = {
-            wood: 0,
-            stone: 0,
+            wood: 100,
+            stone: 100,
             gold: 0,
             pe: 0
         };
@@ -266,20 +276,29 @@
             return false;
         }
 
-        function spawnAvatar(color = null) {
+        function spawnAvatar(role = 'villager_male', forcedColor = null) {
             let spawned = false;
             let attempts = 0;
             while(!spawned && attempts < 50) {
                 let rx = Math.floor(Math.random() * COLS);
                 let ry = Math.floor(Math.random() * ROWS);
                 if (map[ry][rx] === 2 || map[ry][rx] === 1) {
-                    let colors = ['#ff007f', '#00bfff', '#ffaa00', '#aa00ff', '#00ffcc', '#ffff00'];
-                    let assignedColor = color || colors[avatars.length % colors.length];
+                    let color = forcedColor;
+                    if (!color) {
+                        if (role === 'villager_male') color = '#00bfff';       // 1. Aldeanos azules
+                        else if (role === 'villager_female') color = '#ff007f'; // 2. Aldeanas rosado
+                        else if (role === 'explorer') color = '#00ff66';        // 3. Exploradores verdes
+                        else if (role === 'infantry') color = '#2e7d32';        // 4. Infantería verde
+                        else if (role === 'cavalry') color = '#9e9e9e';         // 5. Caballería gris
+                    }
+
                     avatars.push({
                         x: rx,
                         y: ry,
-                        color: assignedColor,
-                        moveTimer: 0
+                        role: role,
+                        color: color,
+                        moveTimer: 0,
+                        speed: role === 'cavalry' ? 20 : (role === 'explorer' ? 25 : 35)
                     });
                     spawned = true;
                 }
@@ -297,7 +316,8 @@
                 barbarians.push({
                     x: bx,
                     y: by,
-                    moveTimer: 0
+                    moveTimer: 0,
+                    color: '#ff3333' // Bárbaros de color rojo
                 });
             }
         }
@@ -359,13 +379,34 @@
         }
 
         function buildStructure(type) {
-            if (type === 'hut') {
+            if (type === 'towncenter') {
+                if (inventory.wood >= 50 && inventory.stone >= 50) {
+                    inventory.wood -= 50;
+                    inventory.stone -= 50;
+                    inventory.pe += 120;
+                    placeRandomStructure('towncenter');
+                }
+            } else if (type === 'hut') {
                 if (inventory.wood >= 30 && inventory.stone >= 15) {
                     inventory.wood -= 30;
                     inventory.stone -= 15;
                     inventory.pe += 50;
                     placeRandomStructure('hut');
-                    spawnAvatar(); 
+                    spawnAvatar(Math.random() < 0.5 ? 'villager_male' : 'villager_female'); 
+                }
+            } else if (type === 'farm') {
+                if (inventory.wood >= 20 && inventory.stone >= 10) {
+                    inventory.wood -= 20;
+                    inventory.stone -= 10;
+                    inventory.pe += 35;
+                    placeRandomStructure('farm');
+                }
+            } else if (type === 'market') {
+                if (inventory.wood >= 30 && inventory.stone >= 20) {
+                    inventory.wood -= 30;
+                    inventory.stone -= 20;
+                    inventory.pe += 45;
+                    placeRandomStructure('market');
                 }
             } else if (type === 'wall') {
                 if (inventory.stone >= 20) {
@@ -380,18 +421,51 @@
                     inventory.pe += 60;
                     placeRandomStructure('tower');
                 }
-            } else if (type === 'lumber') {
-                if (inventory.wood >= 25) {
-                    inventory.wood -= 25;
-                    inventory.pe += 30;
-                    placeRandomStructure('lumber');
+            }
+        }
+
+        function trainUnit(type) {
+            if (type === 'explorer') {
+                if (inventory.wood >= 15) {
+                    inventory.wood -= 15;
+                    inventory.pe += 20;
+                    spawnAvatar('explorer');
                 }
-            } else if (type === 'quarry') {
-                if (inventory.stone >= 25) {
-                    inventory.stone -= 25;
+            } else if (type === 'infantry') {
+                if (inventory.wood >= 20 && inventory.stone >= 10) {
+                    inventory.wood -= 20;
+                    inventory.stone -= 10;
                     inventory.pe += 30;
-                    placeRandomStructure('quarry');
+                    spawnAvatar('infantry');
                 }
+            } else if (type === 'cavalry') {
+                if (inventory.wood >= 30 && inventory.gold >= 20) {
+                    inventory.wood -= 30;
+                    inventory.gold -= 20;
+                    inventory.pe += 50;
+                    spawnAvatar('cavalry');
+                }
+            }
+        }
+
+        function tradeResources(type) {
+            let hasMarket = false;
+            for (let k in structures) {
+                if (structures[k] === 'market') hasMarket = true;
+            }
+            if (!hasMarket) {
+                alert("¡Necesitas construir un Mercado (⚖️) para comerciar!");
+                return;
+            }
+
+            if (type === 'woodToGold' && inventory.wood >= 20) {
+                inventory.wood -= 20;
+                inventory.gold += 1;
+                inventory.pe += 5;
+            } else if (type === 'stoneToGold' && inventory.stone >= 20) {
+                inventory.stone -= 20;
+                inventory.gold += 1;
+                inventory.pe += 5;
             }
         }
 
@@ -416,8 +490,17 @@
                     let key = `${x},${y}`;
                     if (structures[key]) {
                         let st = structures[key];
-                        if (st === 'hut') {
+                        if (st === 'towncenter') {
+                            ctx.fillStyle = '#ffcc00';
+                            ctx.fillRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, 14, 14);
+                        } else if (st === 'hut') {
                             ctx.fillStyle = '#b5651d';
+                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
+                        } else if (st === 'farm') {
+                            ctx.fillStyle = '#ffeb3b';
+                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
+                        } else if (st === 'market') {
+                            ctx.fillStyle = '#ff9800';
                             ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
                         } else if (st === 'wall') {
                             ctx.fillStyle = '#787878';
@@ -427,12 +510,6 @@
                             ctx.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 4, 8, 8);
                             ctx.fillStyle = '#ff0000';
                             ctx.fillRect(x * TILE_SIZE + 7, y * TILE_SIZE + 7, 2, 2);
-                        } else if (st === 'lumber') {
-                            ctx.fillStyle = '#2e8b57';
-                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
-                        } else if (st === 'quarry') {
-                            ctx.fillStyle = '#cd853f';
-                            ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
                         }
                     } else if (resources[key]) {
                         if (resources[key] === 'wood') {
@@ -458,7 +535,7 @@
             }
             for (let i = 0; i < barbarians.length; i++) {
                 let barb = barbarians[i];
-                ctx.fillStyle = '#ff4500';
+                ctx.fillStyle = barb.color; // Bárbaros rojos
                 ctx.fillRect(barb.x * TILE_SIZE + 3, barb.y * TILE_SIZE + 3, TILE_SIZE - 6, TILE_SIZE - 6);
             }
         }
@@ -467,20 +544,20 @@
             gameTicks++;
 
             if (gameTicks % 60 === 0) {
-                let lumberCount = 0;
-                let quarryCount = 0;
+                let farmCount = 0;
+                let townCenterCount = 0;
                 for (let key in structures) {
-                    if (structures[key] === 'lumber') lumberCount++;
-                    if (structures[key] === 'quarry') quarryCount++;
+                    if (structures[key] === 'farm') farmCount++;
+                    if (structures[key] === 'towncenter') townCenterCount++;
                 }
+
                 let prodMultiplier = technologies.steel ? 3 : (technologies.bronze ? 2 : 1);
-                if (lumberCount > 0) {
-                    inventory.wood += lumberCount * 2 * prodMultiplier;
-                    inventory.pe += lumberCount;
+                if (farmCount > 0) {
+                    inventory.wood += farmCount * 2 * prodMultiplier;
+                    inventory.pe += farmCount;
                 }
-                if (quarryCount > 0) {
-                    inventory.stone += quarryCount * 2 * prodMultiplier;
-                    inventory.pe += quarryCount;
+                if (townCenterCount > 0 && gameTicks % 300 === 0) {
+                    spawnAvatar(Math.random() < 0.5 ? 'villager_male' : 'villager_female');
                 }
             }
 
@@ -490,7 +567,6 @@
                 }
             }
 
-            // Las torres de guardia atacan a los bárbaros cercanos de forma automática
             if (invasionActive && gameTicks % 25 === 0) {
                 for (let k in structures) {
                     if (structures[k] === 'tower') {
@@ -511,7 +587,7 @@
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
                 av.moveTimer++;
-                if (av.moveTimer > 35) {
+                if (av.moveTimer > av.speed) {
                     let dx = Math.floor(Math.random() * 3) - 1; 
                     let dy = Math.floor(Math.random() * 3) - 1;
                     let nx = av.x + dx;
@@ -564,7 +640,7 @@
                     for (let j = avatars.length - 1; j >= 0; j--) {
                         let av = avatars[j];
                         if (barb.x === av.x && barb.y === av.y) {
-                            if (technologies.flint || technologies.bronze || technologies.steel) {
+                            if (av.role === 'infantry' || av.role === 'cavalry' || technologies.flint || technologies.bronze || technologies.steel) {
                                 inventory.pe += 25;
                                 barbarians.splice(i, 1);
                             } else {
@@ -616,8 +692,8 @@
         }
 
         generateMap();
-        spawnAvatar('#ff007f');
-        spawnAvatar('#00bfff');
+        spawnAvatar('villager_male', '#00bfff');   // Aldeano Azul
+        spawnAvatar('villager_female', '#ff007f'); // Aldeana Rosado
         gameLoop();
     </script>
 </body>
