@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldZeit - Motor Robusto HD + Eras & Fauna</title>
+    <title>WorldZeit - Advanced Core // Completo</title>
     <style>
         :root {
             --bg-dark: #070709;
@@ -17,27 +17,15 @@
         }
 
         body {
-            margin: 0;
-            background: var(--bg-dark);
-            color: var(--text-main);
+            margin: 0; background: var(--bg-dark); color: var(--text-main);
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-            box-sizing: border-box;
-            height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+            padding: 10px; box-sizing: border-box; height: 100vh; overflow: hidden;
         }
 
         header {
-            text-align: center;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            max-width: 1000px;
-            align-items: center;
+            text-align: center; margin-bottom: 10px; display: flex;
+            justify-content: space-between; width: 100%; max-width: 1000px; align-items: center;
         }
 
         h1 { margin: 0; font-size: 16px; color: var(--accent-green); letter-spacing: 2px; text-transform: uppercase; }
@@ -50,7 +38,7 @@
         }
 
         .resource-item span { color: var(--accent-gold); }
-        .era-item { color: var(--accent-era); font-size: 14px; text-shadow: 0 0 5px rgba(255,255,255,0.3); }
+        .era-item { color: var(--accent-era); font-size: 14px; }
 
         .game-area {
             display: flex; gap: 10px; width: 100%; max-width: 1000px; flex-grow: 1; max-height: 600px;
@@ -59,7 +47,7 @@
         .canvas-container {
             position: relative; overflow: hidden; border: 2px solid var(--border-color);
             background: #0d0d11; border-radius: 6px; box-shadow: 0 10px 20px rgba(0,0,0,0.6);
-            flex-grow: 1; display: flex; justify-content: center; align-items: center; cursor: grab;
+            flex-grow: 1; display: flex; justify-content: center; align-items: center; cursor: crosshair;
         }
 
         canvas { display: block; transform-origin: 0 0; }
@@ -82,14 +70,14 @@
         button.btn-primary {
             background: linear-gradient(135deg, #1f4037, #99f2c8); color: #0c0c0e; border: none;
             padding: 6px; font-weight: bold; border-radius: 4px; cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s; text-transform: uppercase; font-size: 10px; margin-bottom: 3px;
+            text-transform: uppercase; font-size: 10px; margin-bottom: 3px;
         }
-        button.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 0 8px var(--accent-green); }
+        button.btn-primary:hover { box-shadow: 0 0 8px var(--accent-green); }
         button.btn-civil { background: linear-gradient(135deg, #3a2318, #d39572); color: #110a05; }
-        button.btn-civil:hover { box-shadow: 0 0 8px #d39572; }
         button.btn-animal { background: linear-gradient(135deg, #2c3e50, #3498db); color: #fff; }
         button.btn-advance { background: linear-gradient(135deg, #8e44ad, #f1c40f); color: #000; font-size: 12px; padding: 8px; }
-        
+        button.active-build { background: #ff4444 !important; color: #fff !important; }
+
         button.btn-sm {
             background: #1a1a24; color: var(--text-main); border: 1px solid var(--border-color);
             border-radius: 3px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold;
@@ -100,7 +88,7 @@
 
         #adviceBox {
             width: 100%; max-width: 1000px; margin-top: 10px; background: #16130a; border: 1px solid #4d3d00;
-            color: #ffda6a; padding: 8px; border-radius: 6px; font-size: 11px; text-align: center;
+            color: #ffda6a; padding: 8px; border-radius: 6px; font-size: 11px; text-align: center; font-weight: bold;
         }
     </style>
 </head>
@@ -130,10 +118,7 @@
         </div>
 
         <div class="sidebar" id="sidebarMenu">
-            <div class="control-panel" id="dynamicControls">
-                <!-- Se inyectan botones vía JS según la Era -->
-            </div>
-
+            <div class="control-panel" id="dynamicControls"></div>
             <div class="control-panel">
                 <strong>Estado del Imperio</strong>
                 <div class="list-container" id="buildingsControl"></div>
@@ -143,7 +128,7 @@
     </div>
 
     <div id="adviceBox">
-        <strong>Reporte:</strong> Su majestad ha establecido el campamento inicial. Defiende al Rey.
+        <strong>Reporte:</strong> Su majestad ha establecido el campamento. Selecciona una construcción y haz clic en el mapa.
     </div>
 
     <script>
@@ -153,8 +138,8 @@
         const MAP_SIZE = 40; const CELL_SIZE = 40; 
         let camera = { x: 0, y: 0, zoom: 1.0 };
         let isDragging = false, startX, startY;
+        let selectedBuildingType = null; // Para colocación manual
 
-        // Configuración de Eras y Edificios
         const ERAS = [
             { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0 } },
             { name: "Edad de Bronce", req: { g: 200, w: 200, f: 200, s: 200 } },
@@ -180,21 +165,20 @@
             "Universidad": { era: 3, w: 300, s: 400, hp: 700 }
         };
 
-        // Estado Global
         let state = getInitialState();
 
         function getInitialState() {
             return {
                 eraIndex: 0, year: 1,
                 resources: { gold: 300, wood: 300, food: 300, stone: 300 },
-                terrain: [], fog: [], techs: [],
-                buildings: [ { id: 1, type: "Torre", x: 20, y: 20, hp: 400, maxHp: 400 } ],
+                terrain: [], fog: [],
+                buildings: [ { id: 1, type: "Torre", x: 20, y: 20, hp: 400, maxHp: 400, complete: true } ],
                 units: [
-                    { id: 'king', type: 'rey', x: 20, y: 21, hp: 500, targetX: 20, targetY: 21 },
-                    { id: 1, type: "civil", role: "auto", x: 19, y: 20, hp: 100 }
+                    { id: 'king', type: 'rey', x: 20, y: 21, hp: 500, inCastle: false },
+                    { id: 1, type: "civil", role: "constructor", x: 19, y: 20, hp: 100 }
                 ],
                 domesticAnimals: [], pets: [], wildAnimals: [], barbarians: [],
-                messages: "¡El Rey ha llegado! Protege su majestad."
+                messages: "¡Bienvenido! Asigna un constructor y selecciona dónde erigir estructuras."
             };
         }
 
@@ -228,34 +212,37 @@
 
         window.toggleMenu = () => document.getElementById('sidebarMenu').classList.toggle('hidden');
 
-        // Generar UI Dinámica
         function renderDynamicUI() {
             let html = "";
             let nextEra = ERAS[state.eraIndex + 1];
             
             if (nextEra) {
-                html += `<button class="btn-primary btn-advance" onclick="advanceEra()">🌟 Avanzar a ${nextEra.name}<br>(O:${nextEra.req.g}, M:${nextEra.req.w}, C:${nextEra.req.f}, P:${nextEra.req.s})</button>`;
+                let canAdvance = state.resources.gold >= nextEra.req.g && state.resources.wood >= nextEra.req.w && state.resources.food >= nextEra.req.f && state.resources.stone >= nextEra.req.s;
+                if(canAdvance) {
+                    html += `<button class="btn-primary btn-advance" onclick="advanceEra()">🌟 [ALERTA] ¡Avanzar a ${nextEra.name}!</button>`;
+                }
             }
 
-            html += `<strong>Construcción</strong>`;
+            html += `<strong>Construcción (Selecciona y haz clic en mapa)</strong>`;
             Object.keys(BLDG_DATA).forEach(bName => {
                 let b = BLDG_DATA[bName];
                 if (state.eraIndex >= b.era) {
-                    html += `<button class="btn-primary" onclick="build('${bName}', ${b.w}, ${b.s})">🏛️ ${bName} (${b.w}M, ${b.s}P)</button>`;
+                    let activeClass = selectedBuildingType === bName ? 'active-build' : '';
+                    html += `<button class="btn-primary ${activeClass}" onclick="selectBuilding('${bName}')">🏛️ ${bName} (${b.w}M, ${b.s}P)</button>`;
                 }
             });
 
             html += `<strong>Fuerzas Armadas</strong>
-                     <button class="btn-primary" onclick="recruit('soldado', 40, 20)">⚔️ Soldado (40O, 20C)</button>`;
-            if(state.eraIndex >= 1) html += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐎 Caballería (80O, 50C)</button>`;
-            html += `<button class="btn-primary" onclick="recruit('explorador', 30, 15)">👁️ Explorador/Espía (30O, 15C)</button>`;
+                     <button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 Soldado (40O, 20C)</button>`;
+            if(state.eraIndex >= 1) html += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 Caballería (80O, 50C)</button>`;
+            html += `<button class="btn-primary" onclick="recruit('explorador', 30, 15)">👁️ Explorador (30O, 15C)</button>`;
 
-            html += `<strong>Aldeanos</strong>
+            html += `<strong>Aldeanos & Roles</strong>
                      <button class="btn-primary btn-civil" onclick="recruitCivilian('auto', 40)">🔄 Auto-Asignar (40C)</button>
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor (50C)</button>
                      <button class="btn-primary btn-civil" onclick="recruitCivilian('granjero', 50)">🌾 Granjero (50C)</button>
                      <button class="btn-primary btn-civil" onclick="recruitCivilian('leñador', 50)">🪓 Leñador (50C)</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 50)">⛏️ Minero (50C)</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor (50C)</button>`;
+                     <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 50)">⛏️ Minero (50C)</button>`;
                      
             if(state.eraIndex >= 1) {
                 html += `<strong>Ganadería</strong>
@@ -268,46 +255,37 @@
             document.getElementById('dynamicControls').innerHTML = html;
         }
 
-        // Acciones Reclutamiento y Compra
-        window.advanceEra = function() {
-            let req = ERAS[state.eraIndex + 1].req;
-            if (state.resources.gold >= req.g && state.resources.wood >= req.w && state.resources.food >= req.f && state.resources.stone >= req.s) {
-                state.resources.gold -= req.g; state.resources.wood -= req.w; state.resources.food -= req.f; state.resources.stone -= req.s;
-                state.eraIndex++;
-                state.pets.push({ x: 20, y: 20, icon: Math.random()>0.5?'🐕':'🐈' }); // Regalo por avanzar
-                state.messages = `¡Has avanzado a la ${ERAS[state.eraIndex].name}! Recibes una mascota como bendición.`;
-                document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
-                renderDynamicUI(); updateUI();
-            } else alert("Recursos insuficientes para avanzar de Era.");
+        window.selectBuilding = function(type) {
+            selectedBuildingType = selectedBuildingType === type ? null : type;
+            renderDynamicUI();
         }
 
-        window.build = function(type, woodCost, stoneCost) {
-            if (state.resources.wood >= woodCost && state.resources.stone >= stoneCost) {
-                state.resources.wood -= woodCost; state.resources.stone -= stoneCost;
-                let king = state.units.find(u => u.type === 'rey');
-                let bx = king ? king.x + (Math.floor(Math.random()*5)-2) : 20;
-                let by = king ? king.y + (Math.floor(Math.random()*5)-2) : 20;
-                state.buildings.push({ id: Date.now(), type: type, x: bx, y: by, hp: BLDG_DATA[type].hp, maxHp: BLDG_DATA[type].hp });
-                updateUI();
-            } else alert("Faltan recursos.");
+        window.advanceEra = function() {
+            let req = ERAS[state.eraIndex + 1].req;
+            state.resources.gold -= req.g; state.resources.wood -= req.w; state.resources.food -= req.f; state.resources.stone -= req.s;
+            state.eraIndex++;
+            state.pets.push({ x: 20, y: 20, icon: Math.random()>0.5?'🐕':'🐈' });
+            state.messages = `🌟 ¡Has avanzado a la ${ERAS[state.eraIndex].name}!`;
+            document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
+            renderDynamicUI(); updateUI();
         }
 
         window.recruit = function(type, goldCost, foodCost) {
             if (state.resources.gold >= goldCost && state.resources.food >= foodCost) {
                 state.resources.gold -= goldCost; state.resources.food -= foodCost;
                 let king = state.units.find(u => u.type === 'rey');
-                state.units.push({ id: Date.now(), type: type, x: king.x, y: king.y, hp: type==='caballeria'?200:100, traitor: false });
+                state.units.push({ id: Date.now(), type: type, x: king.x+1, y: king.y, hp: type==='caballeria'?200:100, traitor: false });
                 updateUI();
-            }
+            } else alert("Recursos insuficientes para reclutar unidad militar.");
         }
 
         window.recruitCivilian = function(role, foodCost) {
             if (state.resources.food >= foodCost) {
                 state.resources.food -= foodCost;
                 let king = state.units.find(u => u.type === 'rey');
-                state.units.push({ id: Date.now(), type: 'civil', role: role, x: king.x, y: king.y, hp: 60 });
+                state.units.push({ id: Date.now(), type: 'civil', role: role, x: king.x-1, y: king.y, hp: 60 });
                 updateUI();
-            }
+            } else alert("Falta comida para crear aldeano.");
         }
 
         window.buyAnimal = function(icon, goldCost) {
@@ -318,9 +296,39 @@
             }
         }
 
-        // Reinicio si el Rey Muere
+        // Selección de ubicación en el mapa al hacer clic
+        canvas.addEventListener("click", e => {
+            if (!selectedBuildingType) return;
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clickX = (e.clientX - rect.left) * scaleX;
+            const clickY = (e.clientY - rect.top) * scaleY;
+            
+            // Ajustar por zoom y cámara
+            const mapX = Math.floor((clickX / camera.zoom - camera.x) / CELL_SIZE);
+            const mapY = Math.floor((clickY / camera.zoom - camera.y) / CELL_SIZE);
+
+            if (mapX >= 0 && mapX < MAP_SIZE && mapY >= 0 && mapY < MAP_SIZE) {
+                let data = BLDG_DATA[selectedBuildingType];
+                if (state.resources.wood >= data.w && state.resources.stone >= data.s) {
+                    state.resources.wood -= data.w; state.resources.stone -= data.s;
+                    state.buildings.push({ 
+                        id: Date.now(), type: selectedBuildingType, x: mapX, y: mapY, 
+                        hp: data.hp, maxHp: data.hp, complete: false 
+                    });
+                    state.messages = `🏗️ Planos de ${selectedBuildingType} colocados. Esperando constructores.`;
+                    selectedBuildingType = null;
+                    renderDynamicUI();
+                    updateUI();
+                } else {
+                    alert("Recursos insuficientes para construir aquí.");
+                }
+            }
+        });
+
         function resetCivilization() {
-            alert("👑 ¡EL REY HA MUERTO! La civilización ha colapsado. Escapando a nuevas tierras...");
+            alert("👑 ¡EL REY HA MUERTO! La civilización colapsa y sobrevive un aldeano en nuevas tierras...");
             state = getInitialState();
             state.eraIndex = Math.max(0, state.eraIndex - 1);
             document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
@@ -328,26 +336,49 @@
             renderDynamicUI();
         }
 
-        // Lógica de Juego Principal
         function gameLogicTick() {
             let rey = state.units.find(u => u.type === 'rey');
             if(!rey) { resetCivilization(); return; }
 
-            // Economía Edificios
-            let mod = 1 + (state.eraIndex * 0.2); // Bonificador por era
+            let mod = 1 + (state.eraIndex * 0.2);
+
+            // Sistema de Construcción por Constructores
+            let activeConstructors = state.units.filter(u => u.type === 'civil' && u.role === 'constructor').length;
+            let buildingBonus = Math.max(1, activeConstructors * 1.5);
+
             state.buildings.forEach(b => {
-                if(b.type === 'Granja') state.resources.food += 1 * mod;
-                if(b.type === 'Mina') { state.resources.stone += 0.8 * mod; state.resources.gold += 0.3 * mod; }
-                if(b.type === 'Aserradero') state.resources.wood += 1 * mod;
+                if(!b.complete) {
+                    if(activeConstructors > 0) {
+                        b.hp += 15 * buildingBonus;
+                        if(b.hp >= b.maxHp) {
+                            b.hp = b.maxHp;
+                            b.complete = true;
+                            state.messages = `✨ ¡Construcción de ${b.type} finalizada con éxito!`;
+                        }
+                    }
+                } else {
+                    if(b.type === 'Granja') state.resources.food += 1 * mod;
+                    if(b.type === 'Mina') { state.resources.stone += 0.8 * mod; state.resources.gold += 0.3 * mod; }
+                    if(b.type === 'Aserradero') state.resources.wood += 1 * mod;
+                }
             });
-            // Comida de animales
+
             state.resources.food += (state.domesticAnimals.length * 0.2);
 
-            // IA Unidades
+            // Mecánica del Castillo y Refugio del Rey
+            let castle = state.buildings.find(b => b.type === 'Castillo' && b.complete);
+            if (castle && Math.abs(rey.x - castle.x) <= 2 && Math.abs(rey.y - castle.y) <= 2) {
+                if (!rey.inCastle) {
+                    rey.inCastle = true;
+                    state.messages = "🏰 El rey ha ingresado al Castillo para su protección y recuperación.";
+                }
+                rey.hp = Math.min(500, rey.hp + 20); // Recuperación de salud
+            }
+
+            // IA Unidades Civiles y Militares
             state.units.forEach(u => {
                 if(u.type === 'civil') {
                     if(u.role === 'auto') {
-                        // Lógica Auto-asignación simple
                         let minRes = Math.min(state.resources.food, state.resources.wood, state.resources.stone);
                         if(minRes === state.resources.food) u.role = 'granjero';
                         else if(minRes === state.resources.wood) u.role = 'leñador';
@@ -360,16 +391,12 @@
                 }
                 
                 if (u.type === 'explorador') {
-                    if(Math.random() < 0.005) { u.traitor = true; state.messages = "¡Sospechas de un espía traidor!"; }
+                    if(Math.random() < 0.003) { u.traitor = true; state.messages = "⚠️ ¡ALERTA! Un explorador se ha vuelto TRAIDOR."; }
                     if(u.traitor) {
-                        // Traidor revela posición guiando bárbaros
                         let barb = state.barbarians[0];
-                        if(barb) {
-                            if(u.x < rey.x) u.x++; else u.x--;
-                            if(barb.x < u.x) barb.x++;
-                        }
+                        if(barb) { if(u.x < rey.x) u.x++; else u.x--; if(barb.x < u.x) barb.x++; }
                     } else {
-                        u.x += Math.floor(Math.random()*5)-2; u.y += Math.floor(Math.random()*5)-2; // Exploración rápida
+                        u.x += Math.floor(Math.random()*5)-2; u.y += Math.floor(Math.random()*5)-2;
                     }
                 }
                 
@@ -383,59 +410,47 @@
                     }
                 }
                 
-                // Rey se mueve levemente
-                if(u.type === 'rey' && Math.random() < 0.1) {
+                if(u.type === 'rey' && !u.inCastle && Math.random() < 0.1) {
                     u.x += Math.floor(Math.random()*3)-1; u.y += Math.floor(Math.random()*3)-1;
                 }
                 
-                // Limitar mapa
                 u.x = Math.max(0, Math.min(MAP_SIZE - 1, u.x)); u.y = Math.max(0, Math.min(MAP_SIZE - 1, u.y));
             });
 
-            // IA Animales Salvajes
-            state.wildAnimals.forEach(w => {
-                let tc = state.buildings.find(b => b.type === 'Centro Urbano' || b.type === 'Torre');
-                if(tc && Math.abs(w.x - tc.x) < 5) {
-                    // Huir de ciudad
-                    w.x += (w.x > tc.x) ? 1 : -1; w.y += (w.y > tc.y) ? 1 : -1;
-                } else {
-                    let civil = state.units.find(u => u.type === 'civil' && Math.abs(u.x - w.x) <= 2);
-                    let dog = state.pets.find(p => p.icon === '🐕' && Math.abs(p.x - w.x) <= 3);
-                    if (dog || state.units.find(u => (u.type==='soldado'||u.type==='caballeria') && Math.abs(u.x-w.x)<=3)) {
-                        w.x += (w.x > rey.x) ? 1 : -1; // Ahuyentado
-                    } else if (civil) {
-                        civil.hp -= 10; state.messages = "¡Animales salvajes atacan aldeanos!";
-                    } else if(Math.random() < 0.3) {
-                        w.x += Math.floor(Math.random()*3)-1; w.y += Math.floor(Math.random()*3)-1;
+            // IA Bárbaros hostiles coordinados (👹)
+            state.barbarians.forEach(b => {
+                let targetObj = castle || state.buildings.find(bldg => bldg.type === 'Centro Urbano') || rey;
+                if(targetObj) {
+                    if(b.x < targetObj.x) b.x++; else if(b.x > targetObj.x) b.x--;
+                    if(b.y < targetObj.y) b.y++; else if(b.y > targetObj.y) b.y--;
+                }
+
+                // Ataque al Rey
+                if(Math.abs(rey.x - b.x) <= 1 && Math.abs(rey.y - b.y) <= 1) {
+                    if(rey.inCastle) {
+                        // Dentro del castillo solo daña si hay traidor o ataque especial
+                        let traitorInside = state.units.some(u => u.traitor && Math.abs(u.x - rey.x) <= 2);
+                        if(traitorInside) {
+                            rey.inCastle = false; // El rey debe salir
+                            rey.hp -= 50;
+                            state.messages = "🚨 ¡TRAICIÓN EN EL CASTILLO! El Rey ha sido delatado y herido. ¡Buscando militares!";
+                        }
+                    } else {
+                        rey.hp -= 30;
+                        state.messages = "🚨 ¡ALERTA CRÍTICA! ¡El Rey está en riesgo bajo ataque directo!";
                     }
                 }
-            });
-
-            // IA Mascotas y Animales Domésticos
-            state.domesticAnimals.forEach(d => { if(Math.random()<0.1) {d.x += Math.floor(Math.random()*3)-1; d.y += Math.floor(Math.random()*3)-1;} });
-            state.pets.forEach(p => { 
-                let target = p.icon === '🐕' ? state.domesticAnimals[0] || rey : rey; 
-                if(target) { if(p.x < target.x) p.x++; else if(p.x > target.x) p.x--; if(p.y < target.y) p.y++; else if(p.y > target.y) p.y--; }
-            });
-
-            // Bárbaros atacan Rey o Edificios
-            state.barbarians.forEach(b => {
-                // Las puertas no bloquean a los aliados (ya gestionado por no chequear colisión aliada)
-                let gate = state.buildings.find(bldg => bldg.type === 'Puerta' && Math.abs(bldg.x - b.x) <= 1 && Math.abs(bldg.y - b.y) <= 1);
-                let targetBldg = state.buildings.find(bldg => Math.abs(bldg.x - b.x) <= 1 && Math.abs(bldg.y - b.y) <= 1);
-                
-                if(targetBldg) targetBldg.hp -= 20; 
-                else if (rey) { if(b.x < rey.x) b.x++; else if(b.x > rey.x) b.x--; if(b.y < rey.y) b.y++; else if(b.y > rey.y) b.y--; }
-                
-                if(Math.abs(rey.x - b.x) <= 1 && Math.abs(rey.y - b.y) <= 1) rey.hp -= 25;
             });
 
             // Limpieza
             state.barbarians = state.barbarians.filter(b => b.hp > 0);
             state.buildings = state.buildings.filter(b => b.hp > 0);
             state.units = state.units.filter(u => u.hp > 0);
-            if (state.barbarians.length < (1 + state.eraIndex) && Math.random() < 0.1) {
-                state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 100 + (state.eraIndex*50) });
+
+            // Oleada Bárbaros
+            if (state.barbarians.length < (2 + state.eraIndex) && Math.random() < 0.15) {
+                state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 120 + (state.eraIndex*40) });
+                state.messages = "👹 ¡ALERTA! Hordas de bárbaros hostiles se acercan a las fronteras.";
             }
 
             updateVision(); updateUI();
@@ -444,7 +459,7 @@
         function updateVision() {
             for(let y=0; y<MAP_SIZE; y++) for(let x=0; x<MAP_SIZE; x++) if(state.fog[y][x] === 2) state.fog[y][x] = 1;
             state.units.forEach(u => {
-                let range = u.type === 'explorador' ? 10 : (u.type === 'rey' ? 6 : 3);
+                let range = u.type === 'explorador' ? 10 : 4;
                 for(let dy = -range; dy <= range; dy++) {
                     for(let dx = -range; dx <= range; dx++) {
                         let ny = u.y + dy, nx = u.x + dx;
@@ -473,11 +488,11 @@
 
             state.buildings.forEach(b => {
                 let bx = b.x * CELL_SIZE, by = b.y * CELL_SIZE;
-                ctx.fillStyle = b.type.includes('Centro')||b.type.includes('Castillo')||b.type.includes('Torre') ? '#8e44ad' : b.type==='Muralla'||b.type==='Puerta' ? '#7f8c8d' : '#27ae60';
-                if(b.type === 'Puerta') ctx.fillStyle = '#9b59b6'; // Distinguir puerta
-                ctx.fillRect(bx + 2, by + 2, CELL_SIZE - 4, CELL_SIZE - 4);
-                ctx.fillStyle = "red"; ctx.fillRect(bx + 4, by - 6, CELL_SIZE - 8, 4);
-                ctx.fillStyle = "#0f0"; ctx.fillRect(bx + 4, by - 6, (CELL_SIZE - 8) * (b.hp / b.maxHp), 4);
+                ctx.fillStyle = b.complete ? (b.type==='Castillo'?'#6c5ce7':(b.type.includes('Centro')?'#8e44ad':'#27ae60')) : '#555';
+                let size = b.type === 'Castillo' ? CELL_SIZE * 2 : CELL_SIZE; // Castillo ocupa doble
+                ctx.fillRect(bx + 2, by + 2, size - 4, size - 4);
+                ctx.fillStyle = "red"; ctx.fillRect(bx + 4, by - 6, size - 8, 4);
+                ctx.fillStyle = "#0f0"; ctx.fillRect(bx + 4, by - 6, (size - 8) * (b.hp / b.maxHp), 4);
             });
 
             ctx.font = "20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
@@ -485,18 +500,26 @@
             state.domesticAnimals.forEach(d => ctx.fillText(d.icon, (d.x+0.5)*CELL_SIZE, (d.y+0.5)*CELL_SIZE));
             state.pets.forEach(p => ctx.fillText(p.icon, (p.x+0.5)*CELL_SIZE, (p.y+0.5)*CELL_SIZE));
 
+            // Bárbaros (👹)
             state.barbarians.forEach(b => {
-                ctx.fillStyle = "#ff4444"; ctx.beginPath(); ctx.arc((b.x+0.5)*CELL_SIZE, (b.y+0.5)*CELL_SIZE, 9, 0, Math.PI*2); ctx.fill();
+                ctx.fillText('👹', (b.x+0.5)*CELL_SIZE, (b.y+0.5)*CELL_SIZE);
             });
 
+            // Unidades con nuevos íconos 🪖 🐴
             state.units.forEach(u => {
                 if(u.type === 'rey') {
-                    ctx.fillText('👑', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
-                    ctx.fillStyle = "red"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, CELL_SIZE-8, 4);
-                    ctx.fillStyle = "#0f0"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, (CELL_SIZE-8)*(u.hp/500), 4);
+                    if (!u.inCastle) {
+                        ctx.fillText('👑', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
+                        ctx.fillStyle = "red"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, CELL_SIZE-8, 4);
+                        ctx.fillStyle = "#0f0"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, (CELL_SIZE-8)*(u.hp/500), 4);
+                    }
+                } else if(u.type === 'soldado') {
+                    ctx.fillText('🪖', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
+                } else if(u.type === 'caballeria') {
+                    ctx.fillText('🐴', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
                 } else {
-                    ctx.fillStyle = u.type === 'civil' ? (u.role==='granjero'?'#f1c40f':'#bdc3c7') : u.type==='caballeria'?'#9b59b6':(u.type==='soldado'?'#3498db':(u.traitor?'#e74c3c':'#e67e22'));
-                    ctx.beginPath(); ctx.arc((u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE, u.type==='caballeria'?9:7, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = u.type === 'civil' ? (u.role==='granjero'?'#f1c40f':(u.role==='constructor'?'#e67e22':'#bdc3c7')) : '#e67e22';
+                    ctx.beginPath(); ctx.arc((u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE, 7, 0, Math.PI*2); ctx.fill();
                     ctx.strokeStyle = "#fff"; ctx.stroke();
                 }
             });
@@ -518,13 +541,15 @@
             document.getElementById("stoneVal").innerText = Math.floor(state.resources.stone);
             document.getElementById("adviceBox").innerHTML = `<strong>Reporte:</strong> ${state.messages}`;
 
-            let bHtml = ""; state.buildings.forEach(b => bHtml += `<div>🏛️ ${b.type} (${b.hp} HP)</div>`);
+            let bHtml = ""; state.buildings.forEach(b => bHtml += `<div>🏛️ ${b.type} (${b.complete?'Activo':'Construyendo...'} - ${Math.floor(b.hp)} HP)</div>`);
             document.getElementById("buildingsControl").innerHTML = bHtml;
 
             let uHtml = "";
-            let rey = state.units.find(u=>u.type==='rey'); if(rey) uHtml += `<div style="color:gold">👑 Rey (${rey.hp} HP)</div>`;
+            let rey = state.units.find(u=>u.type==='rey'); 
+            if(rey) uHtml += `<div style="color:gold">👑 Rey ${rey.inCastle?'(En Castillo 🏰)':''} (${rey.hp} HP)</div>`;
             state.units.filter(u=>u.type!=='rey').forEach(u => uHtml += `<div>• ${u.type==='civil'?`Aldeano (${u.role})`:u.type}</div>`);
             document.getElementById("unitsControl").innerHTML = uHtml;
+            renderDynamicUI();
         }
 
         window.zoomIn = () => camera.zoom = Math.min(camera.zoom + 0.2, 2.5);
@@ -533,10 +558,8 @@
         const container = document.getElementById("canvasContainer");
         container.addEventListener("mousedown", e => { isDragging = true; startX = e.clientX - camera.x; startY = e.clientY - camera.y; container.style.cursor = "grabbing"; });
         window.addEventListener("mousemove", e => { if(isDragging) { camera.x = e.clientX - startX; camera.y = e.clientY - startY; } });
-        window.addEventListener("mouseup", () => { isDragging = false; container.style.cursor = "grab"; });
-        container.addEventListener("mouseleave", () => { isDragging = false; container.style.cursor = "grab"; });
+        window.addEventListener("mouseup", () => { isDragging = false; container.style.cursor = "crosshair"; });
 
-        // Inicialización
         initWorld(); renderDynamicUI(); updateVision(); updateUI();
         setInterval(() => { state.year++; document.getElementById("yearVal").innerText = state.year; }, 10000);
         setInterval(gameLogicTick, 1000);
