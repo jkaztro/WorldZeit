@@ -30,8 +30,8 @@
 
         h1 {
             color: var(--accent-color);
-            font-size: 20px;
-            margin: 4px 0;
+            font-size: 19px;
+            margin: 3px 0;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
@@ -125,16 +125,23 @@
         </div>
         <div id="control-panels">
             <div class="button-row">
-                <button class="action-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego (20M)</button>
-                <button class="action-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex (30P)</button>
-                <button class="action-btn" id="btn-agri" onclick="researchTech('agri')">🌾 Agríc (40M,20P)</button>
-                <button class="action-btn" id="btn-bronze" onclick="researchTech('bronze')">🛡️ Metal (50P,10O)</button>
+                <button class="action-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego(20M)</button>
+                <button class="action-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex(30P)</button>
+                <button class="action-btn" id="btn-agri" onclick="researchTech('agri')">🌾 Agríc(40M,20P)</button>
+                <button class="action-btn" id="btn-bronze" onclick="researchTech('bronze')">🛡️ Metal(50P,10O)</button>
             </div>
             <div class="button-row">
-                <button class="action-btn" onclick="buildStructure('hut')">⛺ Cabaña (30M,15P)</button>
-                <button class="action-btn" onclick="buildStructure('wall')">🧱 Muralla (20P)</button>
-                <button class="action-btn" onclick="buildStructure('lumber')">🌲 Camp. (25M)</button>
-                <button class="action-btn" onclick="buildStructure('quarry')">⛏️ Cantera (25P)</button>
+                <button class="action-btn" id="btn-arch" onclick="researchTech('arch')">🏛️ Arq(60P,20O)</button>
+                <button class="action-btn" id="btn-steel" onclick="researchTech('steel')">⚔️ Acero(80P,30O)</button>
+            </div>
+            <div class="button-row">
+                <button class="action-btn" onclick="buildStructure('hut')">⛺ Cabaña(30M,15P)</button>
+                <button class="action-btn" onclick="buildStructure('wall')">🧱 Muralla(20P)</button>
+                <button class="action-btn" onclick="buildStructure('tower')">🏹 Torre(40P,10M)</button>
+            </div>
+            <div class="button-row">
+                <button class="action-btn" onclick="buildStructure('lumber')">🌲 Camp.(25M)</button>
+                <button class="action-btn" onclick="buildStructure('quarry')">⛏️ Cantera(25P)</button>
             </div>
         </div>
     </div>
@@ -172,7 +179,9 @@
             fire: false,
             flint: false,
             agri: false,
-            bronze: false
+            bronze: false,
+            arch: false,
+            steel: false
         };
 
         let gameTicks = 0;
@@ -281,7 +290,7 @@
         function triggerInvasion() {
             invasionActive = true;
             barbarians = [];
-            let count = 2 + Math.floor(Math.random() * 2);
+            let count = 2 + Math.floor(Math.random() * 3);
             for(let i = 0; i < count; i++) {
                 let bx = Math.random() < 0.5 ? 0 : COLS - 1;
                 let by = Math.floor(Math.random() * ROWS);
@@ -300,7 +309,7 @@
                     technologies.fire = true;
                     inventory.pe += 25;
                     document.getElementById('btn-fire').classList.add('unlocked');
-                    document.getElementById('btn-fire').innerText = "🔥 Fuego (✓)";
+                    document.getElementById('btn-fire').innerText = "🔥 Fuego(✓)";
                 }
             } else if (tech === 'flint' && !technologies.flint) {
                 if (inventory.stone >= 30) {
@@ -308,7 +317,7 @@
                     technologies.flint = true;
                     inventory.pe += 40;
                     document.getElementById('btn-flint').classList.add('unlocked');
-                    document.getElementById('btn-flint').innerText = "🪨 Sílex (✓)";
+                    document.getElementById('btn-flint').innerText = "🪨 Sílex(✓)";
                 }
             } else if (tech === 'agri' && !technologies.agri) {
                 if (inventory.wood >= 40 && inventory.stone >= 20) {
@@ -317,7 +326,7 @@
                     technologies.agri = true;
                     inventory.pe += 75;
                     document.getElementById('btn-agri').classList.add('unlocked');
-                    document.getElementById('btn-agri').innerText = "🌾 Agríc (✓)";
+                    document.getElementById('btn-agri').innerText = "🌾 Agríc(✓)";
                 }
             } else if (tech === 'bronze' && !technologies.bronze) {
                 if (inventory.stone >= 50 && inventory.gold >= 10) {
@@ -326,7 +335,25 @@
                     technologies.bronze = true;
                     inventory.pe += 150;
                     document.getElementById('btn-bronze').classList.add('unlocked');
-                    document.getElementById('btn-bronze').innerText = "🛡️ Metal (✓)";
+                    document.getElementById('btn-bronze').innerText = "🛡️ Metal(✓)";
+                }
+            } else if (tech === 'arch' && !technologies.arch) {
+                if (inventory.stone >= 60 && inventory.gold >= 20) {
+                    inventory.stone -= 60;
+                    inventory.gold -= 20;
+                    technologies.arch = true;
+                    inventory.pe += 250;
+                    document.getElementById('btn-arch').classList.add('unlocked');
+                    document.getElementById('btn-arch').innerText = "🏛️ Arq(✓)";
+                }
+            } else if (tech === 'steel' && !technologies.steel) {
+                if (inventory.stone >= 80 && inventory.gold >= 30) {
+                    inventory.stone -= 80;
+                    inventory.gold -= 30;
+                    technologies.steel = true;
+                    inventory.pe += 400;
+                    document.getElementById('btn-steel').classList.add('unlocked');
+                    document.getElementById('btn-steel').innerText = "⚔️ Acero(✓)";
                 }
             }
         }
@@ -345,6 +372,13 @@
                     inventory.stone -= 20;
                     inventory.pe += 20;
                     placeRandomStructure('wall');
+                }
+            } else if (type === 'tower') {
+                if (inventory.stone >= 40 && inventory.wood >= 10) {
+                    inventory.stone -= 40;
+                    inventory.wood -= 10;
+                    inventory.pe += 60;
+                    placeRandomStructure('tower');
                 }
             } else if (type === 'lumber') {
                 if (inventory.wood >= 25) {
@@ -388,6 +422,11 @@
                         } else if (st === 'wall') {
                             ctx.fillStyle = '#787878';
                             ctx.fillRect(x * TILE_SIZE + 1, y * TILE_SIZE + 1, 14, 14);
+                        } else if (st === 'tower') {
+                            ctx.fillStyle = '#a9a9a9';
+                            ctx.fillRect(x * TILE_SIZE + 4, y * TILE_SIZE + 4, 8, 8);
+                            ctx.fillStyle = '#ff0000';
+                            ctx.fillRect(x * TILE_SIZE + 7, y * TILE_SIZE + 7, 2, 2);
                         } else if (st === 'lumber') {
                             ctx.fillStyle = '#2e8b57';
                             ctx.fillRect(x * TILE_SIZE + 2, y * TILE_SIZE + 2, 12, 12);
@@ -427,7 +466,6 @@
         function updateGame() {
             gameTicks++;
 
-            // Producción pasiva cada 60 ticks basada en los edificios construidos
             if (gameTicks % 60 === 0) {
                 let lumberCount = 0;
                 let quarryCount = 0;
@@ -435,12 +473,13 @@
                     if (structures[key] === 'lumber') lumberCount++;
                     if (structures[key] === 'quarry') quarryCount++;
                 }
+                let prodMultiplier = technologies.steel ? 3 : (technologies.bronze ? 2 : 1);
                 if (lumberCount > 0) {
-                    inventory.wood += lumberCount * 2;
+                    inventory.wood += lumberCount * 2 * prodMultiplier;
                     inventory.pe += lumberCount;
                 }
                 if (quarryCount > 0) {
-                    inventory.stone += quarryCount * 2;
+                    inventory.stone += quarryCount * 2 * prodMultiplier;
                     inventory.pe += quarryCount;
                 }
             }
@@ -448,6 +487,24 @@
             if (!invasionActive && gameTicks % 350 === 0 && inventory.pe > 30) {
                 if (Math.random() < 0.75) {
                     triggerInvasion();
+                }
+            }
+
+            // Las torres de guardia atacan a los bárbaros cercanos de forma automática
+            if (invasionActive && gameTicks % 25 === 0) {
+                for (let k in structures) {
+                    if (structures[k] === 'tower') {
+                        let [tx, ty] = k.split(',').map(Number);
+                        for (let i = barbarians.length - 1; i >= 0; i--) {
+                            let barb = barbarians[i];
+                            let dist = Math.abs(barb.x - tx) + Math.abs(barb.y - ty);
+                            if (dist <= 3) {
+                                inventory.pe += 15;
+                                barbarians.splice(i, 1);
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
@@ -467,7 +524,7 @@
                         let key = `${nx},${ny}`;
                         if (resources[key]) {
                             let resType = resources[key];
-                            let multiplier = technologies.bronze ? 3 : (technologies.flint ? 2 : 1);
+                            let multiplier = technologies.steel ? 4 : (technologies.bronze ? 3 : (technologies.flint ? 2 : 1));
                             if (technologies.agri) multiplier += 1;
 
                             if (resType === 'wood') { inventory.wood += (5 * multiplier); inventory.pe += 2; }
@@ -507,8 +564,8 @@
                     for (let j = avatars.length - 1; j >= 0; j--) {
                         let av = avatars[j];
                         if (barb.x === av.x && barb.y === av.y) {
-                            if (technologies.flint || technologies.bronze) {
-                                inventory.pe += 20;
+                            if (technologies.flint || technologies.bronze || technologies.steel) {
+                                inventory.pe += 25;
                                 barbarians.splice(i, 1);
                             } else {
                                 if (inventory.gold > 0) inventory.gold--;
@@ -536,7 +593,8 @@
 
             let ageLabel = "Piedra";
             if (inventory.pe >= 200 || technologies.bronze) ageLabel = "Edad de Bronce";
-            if (inventory.pe >= 600) ageLabel = "Edad Media";
+            if (inventory.pe >= 500 || technologies.arch) ageLabel = "Edad Media";
+            if (inventory.pe >= 900 || technologies.steel) ageLabel = "Edad de Acero";
             document.getElementById('lbl-age').innerText = ageLabel;
 
             let statusElem = document.getElementById('lbl-status');
