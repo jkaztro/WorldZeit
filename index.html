@@ -10,6 +10,7 @@
             --text-color: #ffffff;
             --accent-color: #00ff88;
             --panel-bg: #1e1e1e;
+            --btn-bg: #2a2a2a;
         }
 
         body {
@@ -28,8 +29,8 @@
 
         h1 {
             color: var(--accent-color);
-            font-size: 24px;
-            margin: 10px 0;
+            font-size: 22px;
+            margin: 8px 0;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
@@ -42,6 +43,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            max-width: 340px;
         }
 
         canvas {
@@ -53,15 +55,43 @@
         }
 
         #ui-panel {
-            margin-top: 10px;
+            margin-top: 8px;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: bold;
-            line-height: 1.5;
+            line-height: 1.4;
+            width: 100%;
         }
 
         .stat-highlight {
             color: var(--accent-color);
+        }
+
+        #tech-panel {
+            margin-top: 10px;
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .tech-btn {
+            background-color: var(--btn-bg);
+            color: var(--text-color);
+            border: 1px solid #444;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .tech-btn.unlocked {
+            background-color: var(--accent-color);
+            color: #000;
+            border-color: var(--accent-color);
         }
     </style>
 </head>
@@ -73,6 +103,12 @@
         <div id="ui-panel">
             Edad: <span class="stat-highlight" id="lbl-age">Piedra</span> | PE: <span id="lbl-pe">0</span><br>
             🪵 Madera: <span id="lbl-wood">0</span> | 🪨 Piedra: <span id="lbl-stone">0</span> | 🪙 Oro: <span id="lbl-gold">0</span>
+        </div>
+        <!-- Panel de Tecnologías táctil para móvil -->
+        <div id="tech-panel">
+            <button class="tech-btn" id="btn-fire" onclick="researchTech('fire')">🔥 Fuego (20 Mad)</button>
+            <button class="tech-btn" id="btn-flint" onclick="researchTech('flint')">🪨 Sílex (30 Pie)</button>
+            <button class="tech-btn" id="btn-agri" onclick="researchTech('agri')">🌾 Agríc. (40M, 20P)</button>
         </div>
     </div>
 
@@ -101,6 +137,12 @@
             stone: 0,
             gold: 0,
             pe: 0
+        };
+
+        let technologies = {
+            fire: false,
+            flint: false,
+            agri: false
         };
 
         function generateMap() {
@@ -230,6 +272,35 @@
             }
         }
 
+        function researchTech(tech) {
+            if (tech === 'fire' && !technologies.fire) {
+                if (inventory.wood >= 20) {
+                    inventory.wood -= 20;
+                    technologies.fire = true;
+                    inventory.pe += 25;
+                    document.getElementById('btn-fire').classList.add('unlocked');
+                    document.getElementById('btn-fire').innerText = "🔥 Fuego (✓)";
+                }
+            } else if (tech === 'flint' && !technologies.flint) {
+                if (inventory.stone >= 30) {
+                    inventory.stone -= 30;
+                    technologies.flint = true;
+                    inventory.pe += 40;
+                    document.getElementById('btn-flint').classList.add('unlocked');
+                    document.getElementById('btn-flint').innerText = "🪨 Sílex (✓)";
+                }
+            } else if (tech === 'agri' && !technologies.agri) {
+                if (inventory.wood >= 40 && inventory.stone >= 20) {
+                    inventory.wood -= 40;
+                    inventory.stone -= 20;
+                    technologies.agri = true;
+                    inventory.pe += 75;
+                    document.getElementById('btn-agri').classList.add('unlocked');
+                    document.getElementById('btn-agri').innerText = "🌾 Agríc. (✓)";
+                }
+            }
+        }
+
         function updateAvatars() {
             for (let i = 0; i < avatars.length; i++) {
                 let av = avatars[i];
@@ -249,9 +320,12 @@
                         let key = `${nx},${ny}`;
                         if (resources[key]) {
                             let resType = resources[key];
-                            if (resType === 'wood') { inventory.wood += 5; inventory.pe += 2; }
-                            if (resType === 'stone') { inventory.stone += 3; inventory.pe += 3; }
-                            if (resType === 'gold') { inventory.gold += 1; inventory.pe += 10; }
+                            // Si se investigó Sílex, los recursos recolectados se multiplican x2
+                            let multiplier = technologies.flint ? 2 : 1;
+
+                            if (resType === 'wood') { inventory.wood += (5 * multiplier); inventory.pe += 2; }
+                            if (resType === 'stone') { inventory.stone += (3 * multiplier); inventory.pe += 3; }
+                            if (resType === 'gold') { inventory.gold += (1 * multiplier); inventory.pe += 10; }
                             
                             delete resources[key];
                         }
@@ -269,8 +343,8 @@
             document.getElementById('lbl-pe').innerText = inventory.pe;
 
             let ageLabel = "Piedra";
-            if (inventory.pe >= 101) ageLabel = "Bronce";
-            if (inventory.pe >= 501) ageLabel = "Edad Media";
+            if (inventory.pe >= 150) ageLabel = "Bronce";
+            if (inventory.pe >= 500) ageLabel = "Edad Media";
             document.getElementById('lbl-age').innerText = ageLabel;
         }
 
