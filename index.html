@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldZeit - Advanced Core // RTS Layout & Expanded Buildings</title>
+    <title>WorldZeit - Advanced Core // RTS Layout & Expanded Mechanics</title>
     <style>
         :root {
             --bg-dark: #070709; --panel-bg: #111115; --border-color: #2a2a38;
@@ -101,11 +101,19 @@
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.01); } 100% { transform: scale(1); } }
         select.role-select { background: #1a1a24; color: #ddd; border: 1px solid var(--border-color); border-radius: 3px; font-size: 10px; padding: 2px; }
         
-        /* Modal de Edificios / Gobierno / Religión */
+        /* Botón Flotante de IA (SOS) */
+        #sosButton {
+            position: absolute; top: 15px; right: 15px; z-index: 300; background: linear-gradient(135deg, #c0392b, #e74c3c);
+            color: white; border: 2px solid #ffd700; border-radius: 50%; width: 45px; height: 45px; font-size: 20px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(231,76,60,0.6);
+            animation: pulse 2s infinite;
+        }
+
+        /* Modal de Edificios / Gobierno / Religión / IA SOS */
         #buildingModal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #141419; border: 2px solid var(--accent-gold); padding: 20px; border-radius: 8px; z-index: 10000;
-            width: 350px; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+            width: 380px; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
         }
         #buildingModal h3 { margin-top: 0; color: var(--accent-gold); text-align: center; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;}
         #buildingModal p { font-size: 11px; line-height: 1.4; color: #ccc; }
@@ -124,7 +132,7 @@
     <!-- Menú de Selección de Mapas -->
     <div id="startupMenu">
         <h1 style="font-size: 22px; color: var(--accent-gold); margin-bottom: 5px;">📜 SELECCIONA TU MUNDO 📜</h1>
-        <p style="font-size: 12px; text-align: center; margin: 0 10px; color: #aaa;">1,000,000 de recursos iniciales distribuidos según el bioma escogido.</p>
+        <p style="font-size: 12px; text-align: center; margin: 0 10px; color: #aaa;">Recursos iniciales distribuidos según el bioma escogido.</p>
         <div class="map-grid">
             <div class="map-card" id="btnSelva">
                 <h3>🌴 Selva Tropical y Río</h3>
@@ -165,7 +173,7 @@
         <button class="btn-primary" style="width:100%; padding: 8px; margin-top: 5px; text-align:center;" id="btnFinishEditor">✅ TERMINAR Y JUGAR</button>
     </div>
 
-    <!-- Modal Dinámico de Edificios / Gobierno / Religión -->
+    <!-- Modal Dinámico de Edificios / Gobierno / Religión / IA SOS -->
     <div id="buildingModal">
         <h3 id="modalTitle">Gestión de Edificio</h3>
         <div id="modalBody"></div>
@@ -192,6 +200,8 @@
 
     <div class="game-area" id="gameArea">
         <div class="canvas-container" id="canvasContainer">
+            <!-- Botón flotante de IA (SOS) -->
+            <button id="sosButton" onclick="openSOSModal()" title="Consejero IA SOS">🆘</button>
             <canvas id="gameCanvas" width="1600" height="1600" style="width: 800px; height: 800px;"></canvas>
             <div id="adviceBox"><strong>Reporte:</strong> La civilización ha nacido.</div>
         </div>
@@ -220,19 +230,12 @@
                     <div id="militaryButtonsContainer" style="display:flex; flex-direction:column; gap:3px;"></div>
                 </div>
                 <div class="control-section">
-                    <strong>Reclutar Aldeanos (50🍖)</strong>
-                    <div style="display:flex; flex-direction:column; gap:3px;">
-                        <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor</button>
-                        <button class="btn-primary btn-civil" onclick="recruitCivilian('agricultor', 50)">👩🏼‍🌾 Agricultor</button>
-                        <button class="btn-primary btn-civil" onclick="recruitCivilian('leñador', 50)">🪓 Leñador</button>
-                        <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 50)">⚒️ Minero</button>
-                        <button class="btn-primary btn-civil" onclick="recruitCivilian('pescador', 50)">🎣 Pescador</button>
-                        <button class="btn-primary btn-civil" onclick="recruitCivilian('cazador', 50)">🏹 Cazador</button>
-                    </div>
-                </div>
-                <div class="control-section">
                     <strong>Control de Plagas</strong>
                     <button class="btn-primary btn-animal" onclick="buyCat()">🐈 Comprar Gato (20🪙)</button>
+                </div>
+                <div class="control-section">
+                    <strong>Control del Rey</strong>
+                    <button class="btn-primary btn-animal" onclick="publishKingLocation()">📢 Publicar Ubicación del Rey</button>
                 </div>
             </div>
 
@@ -268,14 +271,15 @@
             3: "#1a5276", 4: "#e0f0ff", 7: "#123048", 8: "#6c7a89" 
         };
 
+        // Requisitos ajustados y exigentes para avanzar de era
         const ERAS = [
             { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0 } },
-            { name: "Edad de Bronce", req: { g: 2000, w: 2000, f: 2000, s: 2000 } },
-            { name: "Edad Medieval", req: { g: 15000, w: 15000, f: 15000, s: 15000 } },
-            { name: "Renacimiento", req: { g: 50000, w: 40000, f: 40000, s: 50000 } },
-            { name: "Edad Industrial", req: { g: 120000, w: 90000, f: 90000, s: 120000 } },
-            { name: "Imperial Moderna", req: { g: 300000, w: 200000, f: 200000, s: 300000 } },
-            { name: "Era Espacial", req: { g: 800000, w: 600000, f: 600000, s: 800000 } }
+            { name: "Edad de Bronce", req: { g: 15000, w: 20000, f: 20000, s: 15000 } },
+            { name: "Edad Medieval", req: { g: 80000, w: 100000, f: 100000, s: 90000 } },
+            { name: "Renacimiento", req: { g: 300000, w: 400000, f: 400000, s: 350000 } },
+            { name: "Edad Industrial", req: { g: 900000, w: 1200000, f: 1200000, s: 1000000 } },
+            { name: "Imperial Moderna", req: { g: 3000000, w: 4000000, f: 4000000, s: 3500000 } },
+            { name: "Era Espacial", req: { g: 10000000, w: 15000000, f: 15000000, s: 12000000 } }
         ];
 
         const BLDG_DATA = {
@@ -304,6 +308,8 @@
                 fog: Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0)),
                 nature: { resources: [] }, buildings: [], units: [], domesticAnimals: [], pets: [], wildAnimals: [], barbarians: [], plagues: [],
                 government: 'ninguno', religion: 'roja',
+                kingLocationPublished: false,
+                kingLocationTimer: 0,
                 messages: ""
             };
         }
@@ -320,11 +326,11 @@
             mapTypeSelected = type;
             state = getEmptyState();
             
-            if (type === 'selva') state.resources = { wood: 500000, food: 400000, stone: 50000, gold: 50000, skin: 0 };
-            else if (type === 'bosque') state.resources = { wood: 400000, food: 250000, stone: 150000, gold: 200000, skin: 0 };
-            else if (type === 'desierto') state.resources = { gold: 500000, food: 250000, stone: 150000, wood: 100000, skin: 0 };
-            else if (type === 'islas') state.resources = { food: 400000, wood: 300000, gold: 200000, stone: 100000, skin: 0 };
-            else if (type === 'tundra') state.resources = { gold: 600000, stone: 200000, food: 100000, wood: 100000, skin: 0 };
+            if (type === 'selva') state.resources = { wood: 5000, food: 4000, stone: 500, gold: 500, skin: 0 };
+            else if (type === 'bosque') state.resources = { wood: 4000, food: 2500, stone: 1500, gold: 2000, skin: 0 };
+            else if (type === 'desierto') state.resources = { gold: 5000, food: 2500, stone: 1500, wood: 1000, skin: 0 };
+            else if (type === 'islas') state.resources = { food: 4000, wood: 3000, gold: 2000, stone: 1000, skin: 0 };
+            else if (type === 'tundra') state.resources = { gold: 6000, stone: 2000, food: 1000, wood: 1000, skin: 0 };
 
             generateBiomeTerrain(type);
             spawnInitialSetup();
@@ -351,7 +357,7 @@
         function finishEditor() {
             document.getElementById('editorPanel').style.display = 'none';
             mapTypeSelected = 'custom';
-            state.resources = { gold: 250000, wood: 250000, food: 250000, stone: 250000, skin: 0 };
+            state.resources = { gold: 2500, wood: 2500, food: 2500, stone: 2500, skin: 0 };
             spawnInitialSetup();
             activateGameUI();
         }
@@ -367,17 +373,56 @@
                 window.yearInterval = setInterval(() => { 
                     state.year++; 
                     document.getElementById("yearVal").innerText = state.year;
+                    
+                    handleResourceDepletionAndRenewal();
+
                     if(state.year % 10 === 0) {
-                        // Generar aldeano si hay Centro Urbano
                         let centroUrbano = state.buildings.find(b => b.type === "Centro urbano 🏦" && b.complete);
                         if(centroUrbano) {
-                            state.units.push({ id: Date.now(), type: 'civil', role: 'constructor', x: centroUrbano.x, y: centroUrbano.y, hp: 100, kills: 0, pet: null });
-                            state.messages = "🏦 El Centro Urbano ha generado un nuevo aldeano automáticamente (cada 10 años).";
+                            let autoRole = getAutomaticRole();
+                            let targetX = centroUrbano.x; let targetY = centroUrbano.y;
+                            let resNode = state.nature.resources.find(r => r.type === (autoRole==='leñador'?'arbol':(autoRole==='minero'?'oro':'piedra')));
+                            if(resNode) { targetX = resNode.x; targetY = resNode.y; }
+                            state.units.push({ id: Date.now(), type: 'civil', role: autoRole, x: targetX, y: targetY, hp: 100, kills: 0, pet: null, startYear: state.year });
+                            state.messages = `🏦 El Centro Urbano ha generado un nuevo aldeano automáticamente con rol ${autoRole}.`;
                         }
                     }
                 }, 10000); 
                 requestAnimationFrame(renderLoop);
             }
+        }
+
+        // Sistema determina rol automático según tipo de mapa y recursos existentes
+        function getAutomaticRole() {
+            if (mapTypeSelected === 'selva' || mapTypeSelected === 'bosque') return 'leñador';
+            if (mapTypeSelected === 'desierto' || mapTypeSelected === 'tundra') return 'minero';
+            if (mapTypeSelected === 'islas') return 'pescador';
+            let roles = ['leñador', 'minero', 'agricultor', 'pescador', 'cazador'];
+            return roles[Math.floor(Math.random() * roles.length)];
+        }
+
+        function handleResourceDepletionAndRenewal() {
+            state.units.forEach(u => {
+                if(u.type === 'civil') {
+                    if(!u.startYear) u.startYear = state.year;
+                    if(state.year - u.startYear >= 1) {
+                        let availableRes = state.nature.resources.find(r => Math.abs(r.x - u.x) <= 3 && Math.abs(r.y - u.y) <= 3);
+                        if(availableRes) {
+                            u.x = availableRes.x;
+                            u.y = availableRes.y;
+                            u.startYear = state.year;
+                        } else {
+                            respawnNature(true, false);
+                            let freshRes = state.nature.resources[0];
+                            if(freshRes) {
+                                u.x = freshRes.x;
+                                u.y = freshRes.y;
+                                u.startYear = state.year;
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function generateBiomeTerrain(type) {
@@ -412,18 +457,20 @@
                 }
             }
 
-            let initialRoles = ['constructor', 'leñador', 'minero', 'agricultor', 'pescador', 'cazador'];
-            let r1 = initialRoles[Math.floor(Math.random() * initialRoles.length)];
-            let r2 = initialRoles[Math.floor(Math.random() * initialRoles.length)];
+            let r1 = getAutomaticRole();
+            let r2 = getAutomaticRole();
 
-            state.buildings.push({ id: 1, type: "🗼 Torre", x: 20, y: 20, hp: 400, maxHp: 400, complete: true });
+            state.buildings.push(
+                { id: 1, type: "🗼 Torre", x: 20, y: 20, hp: 400, maxHp: 400, complete: true },
+                { id: 2, type: "Centro urbano 🏦", x: 18, y: 20, hp: 800, maxHp: 800, complete: true }
+            );
             state.units.push(
                 { id: 'king', type: 'rey', x: 20, y: 21, hp: 500, inRefuge: false },
                 { id: 1, type: "soldado", x: 21, y: 21, hp: 100 },
-                { id: 2, type: "civil", role: r1, x: 19, y: 20, hp: 100, kills: 0, pet: null },
-                { id: 3, type: "civil", role: r2, x: 19, y: 21, hp: 100, kills: 0, pet: null }
+                { id: 2, type: "civil", role: r1, x: 19, y: 20, hp: 100, kills: 0, pet: null, startYear: 1 },
+                { id: 3, type: "civil", role: r2, x: 19, y: 21, hp: 100, kills: 0, pet: null, startYear: 1 }
             );
-            state.messages = `La civilización se asienta. El rey, 2 aldeanos y 1 soldado inician el legado.`;
+            state.messages = `La civilización se asienta con un Centro Urbano. El rey, 2 aldeanos estáticos y 1 soldado inician el legado.`;
         }
 
         function respawnNature(isRenewal = false, isFirstLoad = false) {
@@ -487,9 +534,9 @@
             document.getElementById('buildingButtonsContainer').innerHTML = bHtml;
 
             let isIndustrial = state.eraIndex >= 4;
-            let mHtml = `<button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 ${isIndustrial?'Soldado 🔫':'Soldado ⚔️'} (40🪙, 20🍖)</button>`;
+            let mHtml = `<button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 ${isIndustrial?'Soldado 🔫':'Soldado'} (40🪙, 20🍖)</button>`;
             if(state.eraIndex >= 1) {
-                mHtml += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 ${isIndustrial?'Vehículo 🚙':'Caballería 🏇🏼'} (80🪙, 50🍖)</button>`;
+                mHtml += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 ${isIndustrial?'Vehículo 🚙':'Caballería'} (80🪙, 50🍖)</button>`;
             }
             document.getElementById('militaryButtonsContainer').innerHTML = mHtml;
         }
@@ -510,14 +557,6 @@
                 updateUI();
             }
         }
-        window.recruitCivilian = function(role, foodCost) {
-            if (state.resources.food >= foodCost) {
-                state.resources.food -= foodCost;
-                let king = state.units.find(u => u.type === 'rey');
-                state.units.push({ id: Date.now(), type: 'civil', role: role, x: king.x-1, y: king.y, hp: 60, kills: 0, pet: null });
-                updateUI();
-            }
-        }
         window.buyCat = function() {
             if(state.resources.gold >= 20) {
                 state.resources.gold -= 20;
@@ -526,9 +565,23 @@
                 state.messages = "🐈 Gato adquirido.";
             }
         }
+        window.publishKingLocation = function() {
+            state.kingLocationPublished = true;
+            state.kingLocationTimer = 15;
+            state.messages = "📢 ¡Ubicación del Rey publicada! Los ataques enemigos aumentan un 50% durante 15 segundos.";
+            updateUI();
+        }
+
         window.changeRole = function(unitId, newRole) {
             let unit = state.units.find(u => u.id == unitId);
-            if (unit && unit.type === 'civil') { unit.role = newRole; state.messages = `🔄 Aldeano reasignado a ${newRole}.`; updateUI(); }
+            if (unit && unit.type === 'civil') { 
+                unit.role = newRole; 
+                let resNode = state.nature.resources.find(r => r.type === (newRole==='leñador'?'arbol':(newRole==='minero'?'oro':'piedra'))) || state.nature.resources[0];
+                if(resNode) { unit.x = resNode.x; unit.y = resNode.y; }
+                unit.startYear = state.year;
+                state.messages = `🔄 Aldeano reasignado a ${newRole} y fijado en su puesto.`; 
+                updateUI(); 
+            }
         }
 
         function collapseCivilization() {
@@ -549,20 +602,22 @@
             }
         }
 
-        // Gestión de Interacción con Edificios al hacer clic
         function handleBuildingClick(building) {
             const modal = document.getElementById('buildingModal');
             const title = document.getElementById('modalTitle');
             const body = document.getElementById('modalBody');
             modal.style.display = 'block';
 
+            let hasCentroUrbano = state.buildings.some(b => b.type === "Centro urbano 🏦" && b.complete);
+
             if (building.type === "Centro urbano 🏦") {
                 title.innerText = "🏦 Centro Urbano";
                 let govDesc = `Forma de gobierno actual: <b>${state.government.toUpperCase()}</b><br>`;
+                let createBtnHtml = hasCentroUrbano ? `<button class="btn-primary" onclick="createAldeanoGeneric(50)">Crear Aldeano (${getAutomaticRole().toUpperCase()}) (50🍖)</button>` : `<p style="color:#e74c3c;">Se requiere un Centro Urbano activo.</p>`;
                 body.innerHTML = `
-                    <p>Contiene la riqueza de la civilización. Genera aldeanos cada 10 años.</p>
+                    <p>Contiene la riqueza de la civilización. Permite la creación de aldeanos.</p>
                     <p>${govDesc}</p>
-                    <button class="btn-primary" onclick="createAldeanoFromCentro()">Crear Aldeano (50🍖)</button>
+                    ${createBtnHtml}
                     <div style="margin-top:10px;">
                         <strong>Elegir Forma de Gobierno:</strong><br>
                         <button class="btn-primary" onclick="setGovernment('capitalista')">💰 Capitalista (+Oro)</button>
@@ -571,22 +626,39 @@
                         <button class="btn-primary" onclick="setGovernment('ambientalista')">🌿 Ambientalista (+Comida/Naturaleza)</button>
                     </div>
                 `;
+            } else if (building.type === "🪚 Aserradero") {
+                title.innerText = "🪚 Aserradero";
+                let createBtnHtml = hasCentroUrbano ? `<button class="btn-primary" onclick="createAldeanoAtBuilding('${building.type}', 'leñador', 50)">Convocar Leñador (50🍖)</button>` : `<p style="color:#e74c3c;">Se requiere un Centro Urbano activo.</p>`;
+                body.innerHTML = `
+                    <p>Procesa madera y permite convocar aldeanos con rol de Leñador.</p>
+                    ${createBtnHtml}
+                `;
             } else if (building.type.includes("Mina")) {
                 title.innerText = "⛏️ Mina de Recursos";
+                let createBtnHtml = hasCentroUrbano ? `<button class="btn-primary" onclick="createAldeanoAtBuilding('${building.type}', 'minero', 50)">Convocar Minero (50🍖)</button>` : `<p style="color:#e74c3c;">Se requiere un Centro Urbano activo.</p>`;
                 body.innerHTML = `
-                    <p>Contiene recursos (1000u). Requiere un minero asignado.</p>
-                    <button class="btn-primary" onclick="convocarMinero()">Convocar Minero cercano</button>
+                    <p>Extrae minerales y permite convocar aldeanos con rol de Minero.</p>
+                    ${createBtnHtml}
                 `;
             } else if (building.type === "Muelle ⚓") {
                 title.innerText = "⚓ Muelle Naval";
-                let buttons = `<button class="btn-primary" onclick="createShip('pesquero', 50, 30)">🛶 Buque Pesquero (Era Bronce+)</button>`;
+                let createBtnHtml = hasCentroUrbano ? `<button class="btn-primary" onclick="createAldeanoAtBuilding('${building.type}', 'pescador', 50)">Convocar Pescador (50🍖)</button>` : `<p style="color:#e74c3c;">Se requiere un Centro Urbano activo.</p>`;
+                let buttons = `<div style="margin-top:8px;"><button class="btn-primary" onclick="createShip('pesquero', 50, 30)">🛶 Buque Pesquero (Era Bronce+)</button>`;
                 if(state.eraIndex >= 2) {
                     buttons += `
                         <button class="btn-primary" onclick="createShip('guerra', 100, 80)">⛵ Buque de Guerra</button>
                         <button class="btn-primary" onclick="createShip('transporte', 90, 70)">🛥️ Buque de Transporte</button>
                     `;
                 }
-                body.innerHTML = `<p>Construye embarcaciones para agua.</p>` + buttons;
+                buttons += `</div>`;
+                body.innerHTML = `<p>Construye embarcaciones y convoca Pescadores.</p>${createBtnHtml}${buttons}`;
+            } else if (building.type === "🌽 Granja") {
+                title.innerText = "🌽 Granja";
+                let createBtnHtml = hasCentroUrbano ? `<button class="btn-primary" onclick="createAldeanoAtBuilding('${building.type}', 'agricultor', 50)">Convocar Agricultor (50🍖)</button>` : `<p style="color:#e74c3c;">Se requiere un Centro Urbano activo.</p>`;
+                body.innerHTML = `
+                    <p>Produce alimentos de manera agrícola y permite convocar Agricultores.</p>
+                    ${createBtnHtml}
+                `;
             } else if (building.type === "Iglesia ⛪") {
                 title.innerText = "⛪ Iglesia y Religión";
                 body.innerHTML = `
@@ -607,6 +679,27 @@
             }
         }
 
+        window.openSOSModal = function() {
+            const modal = document.getElementById('buildingModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            modal.style.display = 'block';
+            title.innerText = "🆘 Consejero IA - Recomendaciones Estratégicas";
+            
+            let advice = "¡Saludos, líder! Analizando el estado actual de la civilización:<br><br>";
+            if(state.resources.food < 100) advice += "⚠️ <b>Alerta de Alimentos:</b> Tus reservas de comida son bajas. Prioriza la construcción de Granjas o convoca Pescadores/Agricultores desde sus edificios.<br>";
+            let castle = state.buildings.find(b => b.type.includes("Castillo") && b.complete);
+            if(!castle && state.eraIndex >= 2) advice += "⚠️ <b>Seguridad Real:</b> Ya estás en edad avanzada pero no cuentas con un Castillo 🏰 para proteger al Rey de los enjambres bárbaros.<br>";
+            if(state.kingLocationPublished) advice += "🔥 <b>Riesgo Alto:</b> La ubicación del rey está publicada, los bárbaros son 50% más agresivos. ¡Asegura torres y soldados!<br>";
+            if(state.eraIndex < 6) {
+                let next = ERAS[state.eraIndex + 1];
+                advice += `📈 <b>Objetivo de Era:</b> Para alcanzar la ${next.name}, necesitas acumular ${next.req.g}🪙, ${next.req.w}🌲, ${next.req.f}🍖 y ${next.req.s}🪨.<br>`;
+            } else {
+                advice += "🌟 ¡Has alcanzado la cúspide tecnológica en la Era Espacial!";
+            }
+            body.innerHTML = `<p>${advice}</p>`;
+        }
+
         window.closeModal = function() {
             document.getElementById('buildingModal').style.display = 'none';
         }
@@ -623,26 +716,50 @@
             closeModal();
         }
 
-        window.createAldeanoFromCentro = function() {
-            if(state.resources.food >= 50) {
-                state.resources.food -= 50;
+        window.createAldeanoGeneric = function(foodCost) {
+            let hasCentroUrbano = state.buildings.some(b => b.type === "Centro urbano 🏦" && b.complete);
+            if (!hasCentroUrbano) {
+                alert("Se requiere al menos un Centro Urbano activo para crear aldeanos.");
+                return;
+            }
+            if(state.resources.food >= foodCost) {
+                state.resources.food -= foodCost;
                 let centro = state.buildings.find(b => b.type === "Centro urbano 🏦");
-                state.units.push({ id: Date.now(), type: 'civil', role: 'constructor', x: centro.x, y: centro.y, hp: 100, kills: 0, pet: null });
-                state.messages = "🏦 Nuevo aldeano creado desde el Centro Urbano.";
+                let autoRole = getAutomaticRole();
+                let targetX = centro.x; let targetY = centro.y;
+                let resNode = state.nature.resources.find(r => r.type === (autoRole==='leñador'?'arbol':(autoRole==='minero'?'oro':'piedra')));
+                if(resNode) { targetX = resNode.x; targetY = resNode.y; }
+                state.units.push({ id: Date.now(), type: 'civil', role: autoRole, x: targetX, y: targetY, hp: 100, kills: 0, pet: null, startYear: state.year });
+                state.messages = `🏦 Nuevo aldeano (${autoRole}) creado desde el Centro Urbano.`;
                 closeModal();
             } else {
                 alert("No hay suficiente comida (50🍖)");
             }
         }
 
-        window.convocarMinero = function() {
-            let civil = state.units.find(u => u.type === 'civil');
-            if(civil) {
-                civil.role = 'minero';
-                state.messages = "⛏️ Aldeano convocado a la mina como minero.";
+        window.createAldeanoAtBuilding = function(buildingType, roleName, foodCost) {
+            let hasCentroUrbano = state.buildings.some(b => b.type === "Centro urbano 🏦" && b.complete);
+            if (!hasCentroUrbano) {
+                alert("Se requiere al menos un Centro Urbano activo para crear aldeanos.");
+                return;
+            }
+            if(state.resources.food >= foodCost) {
+                state.resources.food -= foodCost;
+                let bldg = state.buildings.find(b => b.type === buildingType);
+                let targetX = bldg ? bldg.x : 20;
+                let targetY = bldg ? bldg.y : 20;
+                if(roleName === 'leñador') {
+                    let r = state.nature.resources.find(res => res.type === 'arbol');
+                    if(r) { targetX = r.x; targetY = r.y; }
+                } else if(roleName === 'minero') {
+                    let r = state.nature.resources.find(res => res.type === 'oro' || res.type === 'piedra');
+                    if(r) { targetX = r.x; targetY = r.y; }
+                }
+                state.units.push({ id: Date.now(), type: 'civil', role: roleName, x: targetX, y: targetY, hp: 100, kills: 0, pet: null, startYear: state.year });
+                state.messages = `🛠️ Aldeano (${roleName}) convocado exitosamente.`;
                 closeModal();
             } else {
-                alert("No hay aldeanos disponibles.");
+                alert("No hay suficiente comida (50🍖)");
             }
         }
 
@@ -679,7 +796,27 @@
                 if (gameState === 'editor') {
                     state.terrain[mapY][mapX] = currentBrush; 
                 } else if (gameState === 'playing') {
-                    // Verificar si se hizo clic en un edificio existente
+                    // Ver si el clic fue en una ubicación con animales salvajes para convocar cazador
+                    let wildAnimalHere = state.wildAnimals.find(w => w.x === mapX && w.y === mapY);
+                    let hasCentroUrbano = state.buildings.some(b => b.type === "Centro urbano 🏦" && b.complete);
+                    if (wildAnimalHere) {
+                        if (hasCentroUrbano) {
+                            const modal = document.getElementById('buildingModal');
+                            const title = document.getElementById('modalTitle');
+                            const body = document.getElementById('modalBody');
+                            modal.style.display = 'block';
+                            title.innerText = "🏹 Zona de Fauna Salvaje";
+                            body.innerHTML = `
+                                <p>Se detectan animales salvajes en esta ubicación. Puedes convocar un Cazador especializado.</p>
+                                <button class="btn-primary" onclick="createAldeanoAtWild(${mapX}, ${mapY}, 'cazador', 50)">Convocar Cazador (50🍖)</button>
+                            `;
+                            return;
+                        } else {
+                            state.messages = "⚠️ Se necesita un Centro Urbano activo para convocar aldeanos desde la zona salvaje.";
+                            updateUI();
+                        }
+                    }
+
                     let clickedBuilding = state.buildings.find(b => b.x === mapX && b.y === mapY);
                     if (clickedBuilding) {
                         handleBuildingClick(clickedBuilding);
@@ -698,12 +835,33 @@
             }
         });
 
+        window.createAldeanoAtWild = function(targetX, targetY, roleName, foodCost) {
+            let hasCentroUrbano = state.buildings.some(b => b.type === "Centro urbano 🏦" && b.complete);
+            if (!hasCentroUrbano) {
+                alert("Se requiere al menos un Centro Urbano activo.");
+                return;
+            }
+            if(state.resources.food >= foodCost) {
+                state.resources.food -= foodCost;
+                state.units.push({ id: Date.now(), type: 'civil', role: roleName, x: targetX, y: targetY, hp: 100, kills: 0, pet: null, startYear: state.year });
+                state.messages = `🏹 Cazador convocado directamente a la zona salvaje.`;
+                closeModal();
+            } else {
+                alert("No hay suficiente comida (50🍖)");
+            }
+        }
+
         function gameLogicTick() {
             if (gameState !== 'playing') return;
             let rey = state.units.find(u => u.type === 'rey');
             if (rey && rey.hp <= 0) { collapseCivilization(); return; }
             if(!rey) return;
             
+            if(state.kingLocationPublished) {
+                state.kingLocationTimer--;
+                if(state.kingLocationTimer <= 0) state.kingLocationPublished = false;
+            }
+
             let mod = 1 + (state.eraIndex * 0.2);
             if(state.government === 'comunista') mod *= 1.2;
             if(state.government === 'capitalista' && Math.random() < 0.3) state.resources.gold += 5;
@@ -751,16 +909,14 @@
                     if(u.role === 'cazador') {
                         let presa = state.wildAnimals[0];
                         if(presa) {
-                            if(u.x < presa.x) u.x++; else if(u.x > presa.x) u.x--;
-                            if(u.y < presa.y) u.y++; else if(u.y > presa.y) u.y--;
-                            if(Math.abs(u.x - presa.x) <= 1) {
+                            if(Math.abs(u.x - presa.x) <= 1 && Math.abs(u.y - presa.y) <= 1) {
                                 state.wildAnimals.shift(); state.resources.food += 20 * mod;
                                 if(['🦌','🐻','🐻‍❄️','🐺','🐒'].includes(presa.icon)) state.resources.skin += 5;
                                 u.kills++;
                                 if(u.kills > 5 && !u.pet) { u.pet = '🐕‍🦺'; state.messages = "🏹 Cazador ha domado un perro."; }
                             }
                         }
-                    } else if(Math.random() < 0.2) { u.x += Math.floor(Math.random()*3)-1; u.y += Math.floor(Math.random()*3)-1; }
+                    }
                 }
                 
                 if (u.type === 'soldado' || u.type === 'caballeria' || u.type === 'elite') {
@@ -780,13 +936,17 @@
                 u.x = Math.max(0, Math.min(MAP_SIZE - 1, u.x)); u.y = Math.max(0, Math.min(MAP_SIZE - 1, u.y));
             });
 
-            if (state.barbarians.length < (2 + state.eraIndex) && Math.random() < 0.15) {
-                state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 120 + (state.eraIndex*40) });
+            let hasCastle = state.buildings.some(b => b.type.includes("Castillo") && b.complete);
+            let swarmChance = hasCastle ? 0.25 : 0.08;
+            if (state.barbarians.length < (3 + state.eraIndex * 2) && Math.random() < swarmChance) {
+                state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 150 + (state.eraIndex*60) });
             }
             state.barbarians.forEach(b => {
                 if(b.x < rey.x) b.x++; else if(b.x > rey.x) b.x--;
                 if(b.y < rey.y) b.y++; else if(b.y > rey.y) b.y--;
-                if(Math.abs(rey.x - b.x) <= 1 && !rey.inRefuge) rey.hp -= 30; 
+                let damage = 35 + (state.eraIndex * 15);
+                if(state.kingLocationPublished) damage *= 1.5;
+                if(Math.abs(rey.x - b.x) <= 1 && !rey.inRefuge) rey.hp -= damage; 
             });
 
             state.barbarians = state.barbarians.filter(b => b.hp > 0);
@@ -852,11 +1012,11 @@
                             ctx.fillStyle = "#0f0"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, (CELL_SIZE-8)*(u.hp/500), 4);
                         }
                     } else if(u.type === 'soldado') {
-                        ctx.fillText(state.eraIndex >= 4 ? '🔫' : '⚔️', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
+                        ctx.fillText(state.eraIndex >= 4 ? '🔫' : '🪖', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
                     } else if(u.type === 'elite') {
                         ctx.fillText('🌟', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
                     } else if(u.type === 'caballeria') {
-                        ctx.fillText(state.eraIndex >= 4 ? '🚙' : '🏇🏼', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
+                        ctx.fillText(state.eraIndex >= 4 ? '🚙' : '🐴', (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
                     } else {
                         let roleIcon = u.role === 'cazador' ? '🏹' : (u.role === 'pescador' ? '🎣' : (u.role === 'agricultor' ? '👩🏼‍🌾' : (u.role==='leñador'?'🪓':(u.role==='minero'?'⚒️':'👷'))));
                         ctx.fillText(roleIcon, (u.x+0.5)*CELL_SIZE, (u.y+0.5)*CELL_SIZE);
@@ -891,7 +1051,7 @@
             
             state.units.filter(u=>u.type!=='rey').forEach(u => {
                 if(u.type === 'civil') {
-                    uHtml += `<div style="margin:3px 0; font-size:10px; display:flex; justify-content:space-between; align-items:center;"><span>Aldeano:</span> 
+                    uHtml += `<div style="margin:3px 0; font-size:10px; display:flex; justify-content:space-between; align-items:center;"><span>Aldeano (Estático):</span> 
                         <select class="role-select" onchange="changeRole(${u.id}, this.value)">
                             <option value="constructor" ${u.role==='constructor'?'selected':''}>🔨 Const.</option>
                             <option value="agricultor" ${u.role==='agricultor'?'selected':''}>👩🏼‍🌾 Agríc.</option>
@@ -902,7 +1062,7 @@
                         </select>
                     </div>`;
                 } else {
-                    uHtml += `<div style="font-size:10px; margin-bottom:2px;">• ${u.type === 'soldado' ? '🪖 Soldado' : (u.type === 'elite' ? '🌟 Guerrero Elite' : u.type)}</div>`;
+                    uHtml += `<div style="font-size:10px; margin-bottom:2px;">• ${u.type === 'soldado' ? '🪖 Soldado' : (u.type === 'elite' ? '🌟 Guerrero Elite' : (u.type === 'caballeria' ? '🐴 Caballería' : u.type))}</div>`;
                 }
             });
             document.getElementById("unitsControl").innerHTML = uHtml;
