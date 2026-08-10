@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldZeit - Advanced Core // RTS Layout with Dialogue System</title>
+    <title>WorldZeit - Advanced Core // Dynamic Era Progression</title>
     <style>
         :root {
             --bg-dark: #070709; --panel-bg: #111115; --border-color: #2a2a38;
@@ -140,7 +140,7 @@
     <!-- Menú de Selección de Mapas -->
     <div id="startupMenu">
         <h1 style="font-size: 22px; color: var(--accent-gold); margin-bottom: 5px;">📜 SELECCIONA TU MUNDO 📜</h1>
-        <p style="font-size: 12px; text-align: center; margin: 0 10px; color: #aaa;">Recursos iniciales distribuidos según el bioma escogido.</p>
+        <p style="font-size: 12px; text-align: center; margin: 0 10px; color: #aaa;">Recursos iniciales y costos de era adaptados según el terreno.</p>
         <div class="map-grid">
             <div class="map-card" id="btnSelva">
                 <h3>🌴 Selva Tropical y Río</h3>
@@ -275,14 +275,15 @@
             3: "#1a5276", 4: "#e0f0ff", 7: "#123048", 8: "#6c7a89" 
         };
 
+        // BASE ERAS DATA (Costos base teóricos)
         const ERAS = [
-            { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0 } },
-            { name: "Edad de Bronce", req: { g: 15000, w: 20000, f: 20000, s: 15000 } },
-            { name: "Edad Medieval", req: { g: 80000, w: 100000, f: 100000, s: 90000 } },
-            { name: "Renacimiento", req: { g: 300000, w: 400000, f: 400000, s: 350000 } },
-            { name: "Edad Industrial", req: { g: 900000, w: 1200000, f: 1200000, s: 1000000 } },
-            { name: "Imperial Moderna", req: { g: 3000000, w: 4000000, f: 4000000, s: 3500000 } },
-            { name: "Era Espacial", req: { g: 10000000, w: 15000000, f: 15000000, s: 12000000 } }
+            { name: "Edad de Piedra", reqBase: { g: 0, w: 0, f: 0, s: 0 } },
+            { name: "Edad de Bronce", reqBase: { g: 200, w: 400, f: 400, s: 50 } },
+            { name: "Edad Medieval", reqBase: { g: 800, w: 1000, f: 1000, s: 250 } },
+            { name: "Renacimiento", reqBase: { g: 2500, w: 3000, f: 3000, s: 800 } },
+            { name: "Edad Industrial", reqBase: { g: 8000, w: 9000, f: 9000, s: 2000 } },
+            { name: "Imperial Moderna", reqBase: { g: 20000, w: 22000, f: 22000, s: 5000 } },
+            { name: "Era Espacial", reqBase: { g: 50000, w: 50000, f: 50000, s: 12000 } }
         ];
 
         const BLDG_DATA = {
@@ -315,6 +316,43 @@
                 kingLocationTimer: 0,
                 messages: ""
             };
+        }
+
+        // ==========================================
+        // NUEVA LÓGICA: COSTO ADAPTATIVO DE ERA
+        // ==========================================
+        function calculateDynamicEraCost(targetEraIndex) {
+            let baseReq = ERAS[targetEraIndex].reqBase;
+            if (!baseReq) return null;
+
+            // Contar el potencial de piedra y oro en el mapa
+            let totalMapStone = state.nature.resources.filter(r => r.type === 'piedra').length * 100;
+            let totalMapGold = state.nature.resources.filter(r => r.type === 'oro').length * 100;
+
+            // Asumir un mínimo estimado para evitar división por 0
+            totalMapStone = Math.max(totalMapStone, 300);
+            totalMapGold = Math.max(totalMapGold, 500);
+
+            let adjustedReq = { ...baseReq };
+
+            // REGLA ANTI-BLOQUEO DE PIEDRA: Máximo 30% de la piedra total del mapa
+            let maxStoneAllowed = Math.floor(totalMapStone * 0.30);
+            if (adjustedReq.s > maxStoneAllowed) {
+                let stoneExcess = adjustedReq.s - maxStoneAllowed;
+                adjustedReq.s = maxStoneAllowed;
+                // El exceso de piedra no disponible se compensa pidiendo más Oro o Madera
+                adjustedReq.g += Math.ceil(stoneExcess * 1.2);
+            }
+
+            // REGLA ANTI-BLOQUEO DE ORO: Si el oro también es escaso, derivar a madera
+            let maxGoldAllowed = Math.floor(totalMapGold * 0.40);
+            if (adjustedReq.g > maxGoldAllowed) {
+                let goldExcess = adjustedReq.g - maxGoldAllowed;
+                adjustedReq.g = maxGoldAllowed;
+                adjustedReq.w += Math.ceil(goldExcess * 1.5);
+            }
+
+            return adjustedReq;
         }
 
         function addDialogue(speaker, text) {
@@ -539,12 +577,12 @@
             if (gameState !== 'playing') return;
             
             let eraHtml = "";
-            let nextEra = ERAS[state.eraIndex + 1];
-            if (nextEra) {
-                let req = nextEra.req;
+            let nextEraIndex = state.eraIndex + 1;
+            if (ERAS[nextEraIndex]) {
+                let req = calculateDynamicEraCost(nextEraIndex);
                 let canAdvance = state.resources.gold >= req.g && state.resources.wood >= req.w && state.resources.food >= req.f && state.resources.stone >= req.s;
                 eraHtml += `<div class="era-panel">
-                            <strong style="color:var(--accent-gold)">Siguiente: ${nextEra.name}</strong>
+                            <strong style="color:var(--accent-gold)">Siguiente: ${ERAS[nextEraIndex].name}</strong>
                             <div style="font-size:9px; margin: 3px 0; color:#aaa;">${req.g}🪙 | ${req.w}🌲 | ${req.f}🍖 | ${req.s}🪨</div>`;
                 if(canAdvance) eraHtml += `<button class="btn-primary btn-advance" onclick="advanceEra()">🌟 ¡AVANZAR DE ERA!</button>`;
                 else eraHtml += `<button class="btn-primary" disabled style="text-align:center;">Faltan Recursos</button>`;
@@ -573,14 +611,20 @@
         }
 
         window.selectBuilding = function(type) { selectedBuildingType = selectedBuildingType === type ? null : type; renderDynamicUI(); }
+        
         window.advanceEra = function() {
-            let req = ERAS[state.eraIndex + 1].req;
-            state.resources.gold -= req.g; state.resources.wood -= req.w; state.resources.food -= req.f; state.resources.stone -= req.s;
-            state.eraIndex++; 
-            addDialogue("👑 Rey", `¡Hemos avanzado triunfalmente a la ${ERAS[state.eraIndex].name}!`);
-            document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
-            renderDynamicUI(); updateUI();
+            let nextEraIndex = state.eraIndex + 1;
+            let req = calculateDynamicEraCost(nextEraIndex);
+            
+            if (req && state.resources.gold >= req.g && state.resources.wood >= req.w && state.resources.food >= req.f && state.resources.stone >= req.s) {
+                state.resources.gold -= req.g; state.resources.wood -= req.w; state.resources.food -= req.f; state.resources.stone -= req.s;
+                state.eraIndex++; 
+                addDialogue("👑 Rey", `¡Hemos avanzado triunfalmente a la ${ERAS[state.eraIndex].name}!`);
+                document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
+                renderDynamicUI(); updateUI();
+            }
         }
+
         window.recruit = function(type, goldCost, foodCost) {
             if (state.resources.gold >= goldCost && state.resources.food >= foodCost) {
                 state.resources.gold -= goldCost; state.resources.food -= foodCost;
@@ -590,6 +634,7 @@
                 updateUI();
             }
         }
+
         window.buyCat = function() {
             if(state.resources.gold >= 20) {
                 state.resources.gold -= 20;
@@ -598,6 +643,7 @@
                 addDialogue("🐈 Mascota", "Un gato cazador ha llegado al imperio.");
             }
         }
+
         window.publishKingLocation = function() {
             state.kingLocationPublished = true;
             state.kingLocationTimer = 15;
@@ -719,9 +765,10 @@
             let castle = state.buildings.find(b => b.type.includes("Castillo") && b.complete);
             if(!castle && state.eraIndex >= 2) advice += "⚠️ <b>Seguridad Real:</b> Requiere un Castillo 🏰 para proteger al Rey de emboscadas.<br>";
             if(state.kingLocationPublished) advice += "🔥 <b>Ataques Intensos:</b> La ubicación del Rey está expuesta. ¡Refuerza la guardia!<br>";
+            
             if(state.eraIndex < 6) {
-                let next = ERAS[state.eraIndex + 1];
-                advice += `📈 <b>Siguiente Era:</b> Requiere ${next.req.g}🪙, ${next.req.w}🌲, ${next.req.f}🍖, ${next.req.s}🪨.<br>`;
+                let nextReq = calculateDynamicEraCost(state.eraIndex + 1);
+                advice += `📈 <b>Siguiente Era (Ajuste Dinámico):</b> Requiere ${nextReq.g}🪙, ${nextReq.w}🌲, ${nextReq.f}🍖, ${nextReq.s}🪨.<br>`;
             } else {
                 advice += "🌟 ¡Ha alcanzado la Era Espacial!";
             }
@@ -773,7 +820,6 @@
                 let muelle = state.buildings.find(b => b.type === "Muelle ⚓");
                 let targetX = muelle ? muelle.x : 20; let targetY = muelle ? muelle.y : 20;
                 
-                // Buscar agua cercana para posicionar el barco
                 for(let dy=-1; dy<=1; dy++) {
                     for(let dx=-1; dx<=1; dx++) {
                         let nx = targetX + dx, ny = targetY + dy;
@@ -823,7 +869,6 @@
                     state.terrain[mapY][mapX] = currentBrush; 
                 } else if (gameState === 'playing') {
                     
-                    // INTERACCIÓN: ANIMALES SALVAJES Y ACUÁTICOS
                     let wildIndex = state.wildAnimals.findIndex(w => w.x === mapX && w.y === mapY);
                     if (wildIndex !== -1) {
                         let wild = state.wildAnimals[wildIndex];
@@ -831,7 +876,6 @@
                         let spawnX = centro ? centro.x : mapX;
                         let spawnY = centro ? centro.y : mapY;
 
-                        // Si es criatura marina (pez, cangrejo, etc.)
                         if (wild.isWaterAnimal || ['🐟', '🦀'].includes(wild.icon)) {
                             state.resources.food += 100;
                             state.units.push({
@@ -850,7 +894,6 @@
                             });
                             addDialogue("🎣 Pescador Convocado", `¡Captura de ${wild.icon}! Recolectadas +100 unidades de alimento.`);
                         } 
-                        // Si es animal terrestre
                         else {
                             let dangerousPredators = ['🐅', '🦁', '🐻', '🐻‍❄️', '🐺', '🐊'];
                             let isDangerous = dangerousPredators.includes(wild.icon);
@@ -894,7 +937,6 @@
                         return;
                     }
 
-                    // INTERACCIÓN: ÁRBOLES Y ÁRBOLES FRUTALES
                     let resIndex = state.nature.resources.findIndex(r => r.x === mapX && r.y === mapY);
                     if (resIndex !== -1) {
                         let res = state.nature.resources[resIndex];
@@ -1025,7 +1067,7 @@
 
                 if(u.type === 'barco') {
                     if(u.shipType === 'pesquero') state.resources.food += 2.0 * mod;
-                    return; // Mapeo especial para barcos
+                    return; 
                 }
 
                 if(u.type === 'civil') {
@@ -1057,7 +1099,6 @@
                         nx = Math.max(0, Math.min(MAP_SIZE - 1, nx));
                         ny = Math.max(0, Math.min(MAP_SIZE - 1, ny));
 
-                        // RESTRICCIÓN DE AGUA PARA TROPAS
                         if(state.terrain[ny][nx] !== 3) { u.x = nx; u.y = ny; }
 
                         let range = state.eraIndex >= 4 ? 3 : 1;
@@ -1071,13 +1112,10 @@
                     nx = Math.max(0, Math.min(MAP_SIZE - 1, nx));
                     ny = Math.max(0, Math.min(MAP_SIZE - 1, ny));
                     
-                    // RESTRICCIÓN DE AGUA PARA EL REY
                     if(state.terrain[ny][nx] !== 3) { u.x = nx; u.y = ny; }
                 }
 
-                // VALIDACIÓN GENERAL DE IMPERMEABILIDAD DE AGUA PARA TERRESTRES
                 if(!u.isShip && state.terrain[u.y][u.x] === 3) {
-                    // Si cae en agua por algún motivo, reposicionar a tierra
                     for(let dy=-1; dy<=1; dy++) {
                         for(let dx=-1; dx<=1; dx++) {
                             let tx = u.x + dx, ty = u.y + dy;
@@ -1112,7 +1150,7 @@
             state.buildings = state.buildings.filter(b => b.hp > 0);
             state.units = state.units.filter(u => u.hp > 0);
 
-            updateVision(); updateUI();
+            updateVision(); updateUI(); renderDynamicUI();
         }
 
         function updateVision() {
@@ -1165,7 +1203,6 @@
                         ctx.fillRect(bx + 2, by + 2, size - 4, size - 4);
                     }
 
-                    // Barra de Vida de Edificio
                     ctx.fillStyle = "red"; ctx.fillRect(bx + 4, by - 6, size - 8, 4);
                     ctx.fillStyle = "#0f0"; ctx.fillRect(bx + 4, by - 6, (size - 8) * (b.hp / b.maxHp), 4);
                 });
@@ -1199,7 +1236,6 @@
                         if(u.pet) ctx.fillText(u.pet, (u.x+0.8)*CELL_SIZE, (u.y+0.8)*CELL_SIZE);
                     }
 
-                    // DIBUJO DE BOCADILLO DE DIÁLOGOS FLOTANTES
                     if(u.speakTimer && u.speakTimer > 0 && u.speech) {
                         ctx.save();
                         ctx.font = "bold 10px sans-serif";
