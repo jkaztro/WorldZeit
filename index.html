@@ -3,92 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WorldZeit - Advanced Core // Selección de Mapas</title>
+    <title>WorldZeit - Advanced Core // RTS Layout</title>
     <style>
         :root {
-            --bg-dark: #070709; --panel-bg: #111115; --border-color: #22222d;
+            --bg-dark: #070709; --panel-bg: #111115; --border-color: #2a2a38;
             --accent-green: #00ffcc; --accent-gold: #ffd700; --accent-era: #b8c2cc; --text-main: #d0d0d6;
         }
         body {
             margin: 0; background: var(--bg-dark); color: var(--text-main); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex; flex-direction: column; align-items: center; padding: 10px; box-sizing: border-box; height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; height: 100vh; overflow: hidden; box-sizing: border-box;
         }
         
-        /* Menú de Inicio (Mapas) */
         #startupMenu {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.95); z-index: 1000; display: flex;
-            flex-direction: column; align-items: center; justify-content: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(7, 7, 9, 0.98); z-index: 9999; display: flex;
+            flex-direction: column; align-items: center; justify-content: center; overflow-y: auto; padding: 20px; box-sizing: border-box;
         }
         .map-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 800px; margin-top: 20px;
-            padding: 10px; box-sizing: border-box;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 900px; margin-top: 20px; width: 100%;
         }
         .map-card {
-            background: #1a1a24; border: 1px solid var(--accent-gold); padding: 15px; border-radius: 8px;
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-align: center;
+            background: #111115; border: 1px solid var(--border-color); padding: 15px; border-radius: 6px;
+            cursor: pointer; transition: all 0.2s; text-align: center;
         }
-        .map-card:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent-gold); }
-        .map-card h3 { margin: 0 0 10px 0; color: var(--accent-green); font-size: 14px; }
-        .map-card p { margin: 0; font-size: 11px; color: #aaa; }
+        .map-card:hover { border-color: var(--accent-gold); transform: translateY(-3px); box-shadow: 0 4px 12px rgba(255,215,0,0.15); }
+        .map-card h3 { margin: 0 0 8px 0; color: var(--accent-green); font-size: 14px; }
+        .map-card p { margin: 0; font-size: 11px; color: #888; line-height: 1.4; }
         
-        /* Editor Mode */
         #editorPanel {
             display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(17, 17, 21, 0.9); padding: 15px; border: 2px solid var(--accent-green);
+            background: rgba(17, 17, 21, 0.95); padding: 15px; border: 2px solid var(--accent-green);
             border-radius: 8px; z-index: 500; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
         }
         .editor-btn { width: 35px; height: 35px; border: 2px solid #555; border-radius: 5px; cursor: pointer; }
         .editor-btn.active { border-color: var(--accent-gold); transform: scale(1.1); }
         
-        /* Estructura Principal */
-        header { text-align: center; margin-bottom: 10px; display: flex; justify-content: space-between; width: 100%; max-width: 1000px; align-items: center; }
-        h1 { margin: 0; font-size: 14px; color: var(--accent-green); letter-spacing: 1px; text-transform: uppercase; }
+        /* Layout Estilo RTS (AoE / WorldBox HUD) */
+        header { 
+            background: #0c0c0e; border-bottom: 1px solid var(--border-color);
+            display: flex; justify-content: space-between; width: 100%; padding: 8px 15px; box-sizing: border-box; align-items: center; z-index: 100;
+        }
+        h1 { margin: 0; font-size: 13px; color: var(--accent-green); letter-spacing: 1px; text-transform: uppercase; }
         
         .dashboard {
-            display: none; gap: 15px; background: var(--panel-bg); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 6px;
-            font-size: 12px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); justify-content: center;
-            width: 100%; max-width: 1000px; flex-wrap: wrap;
+            display: none; gap: 15px; background: #0e0e12; border-bottom: 1px solid var(--border-color); padding: 6px 15px;
+            font-size: 11px; font-weight: bold; justify-content: center; width: 100%; box-sizing: border-box; flex-wrap: wrap; z-index: 90;
         }
         .resource-item span { color: var(--accent-gold); }
-        .era-item { color: var(--accent-era); font-size: 14px; }
+        .era-item { color: var(--accent-era); font-size: 12px; }
+
+        /* Área de juego distribuida permanentemente en paralelo */
+        .game-area { 
+            display: none; width: 100%; flex-grow: 1; overflow: hidden; position: relative;
+            flex-direction: row; box-sizing: border-box;
+        }
         
-        .game-area { display: none; gap: 10px; width: 100%; max-width: 1000px; flex-grow: 1; max-height: 600px; }
         .canvas-container {
-            position: relative; overflow: hidden; border: 2px solid var(--border-color); background: #0d0d11; border-radius: 6px;
+            position: relative; overflow: hidden; background: #050507; 
             flex-grow: 1; display: flex; justify-content: center; align-items: center; cursor: crosshair;
         }
         canvas { display: block; transform-origin: 0 0; }
         
-        .sidebar { width: 300px; display: flex; flex-direction: column; gap: 10px; transition: all 0.3s ease; }
-        .sidebar.hidden { display: none; }
-        .control-panel {
-            background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 6px; padding: 8px; font-size: 11px;
-            display: flex; flex-direction: column; gap: 5px; flex-grow: 1; overflow-y: auto; max-height: 400px;
+        /* Panel Lateral Fijo Estilo WorldBox / AoE UI */
+        .sidebar { 
+            width: 320px; background: var(--panel-bg); border-left: 1px solid var(--border-color);
+            display: flex; flex-direction: column; box-sizing: border-box; z-index: 80; flex-shrink: 0;
+            height: 100%; overflow: hidden;
         }
-        .control-panel strong { color: var(--accent-green); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-bottom: 4px; text-align: center; display: block; margin-top: 5px; }
+        .sidebar-tabs {
+            display: flex; background: #0c0c0e; border-bottom: 1px solid var(--border-color);
+        }
+        .tab-btn {
+            flex: 1; background: none; border: none; color: #888; padding: 10px 0; font-size: 11px; font-weight: bold; cursor: pointer; text-align: center; border-bottom: 2px solid transparent;
+        }
+        .tab-btn.active { color: var(--accent-green); border-bottom-color: var(--accent-green); background: #111115; }
+        
+        .tab-content { display: none; flex-direction: column; gap: 8px; padding: 10px; overflow-y: auto; flex-grow: 1; box-sizing: border-box; }
+        .tab-content.active { display: flex; }
+
+        .control-section {
+            background: #15151a; border: 1px solid var(--border-color); border-radius: 4px; padding: 8px; font-size: 11px;
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .control-section strong { color: var(--accent-green); border-bottom: 1px solid var(--border-color); padding-bottom: 3px; margin-bottom: 3px; text-align: center; display: block; }
         
         button { width: 100%; box-sizing: border-box; }
-        button.btn-primary { background: linear-gradient(135deg, #1f4037, #99f2c8); color: #0c0c0e; border: none; padding: 6px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 10px; margin-bottom: 3px; }
-        button.btn-primary:hover { box-shadow: 0 0 8px var(--accent-green); }
-        button.btn-primary:disabled { background: #333 !important; color: #777 !important; cursor: not-allowed; }
-        button.btn-civil { background: linear-gradient(135deg, #3a2318, #d39572); color: #110a05; }
-        button.btn-animal { background: linear-gradient(135deg, #2c3e50, #3498db); color: #fff; }
-        button.btn-advance { background: linear-gradient(135deg, #8e44ad, #f1c40f); color: #000; font-size: 12px; padding: 8px; animation: pulse 1.5s infinite;}
-        button.active-build { background: #ff4444 !important; color: #fff !important; }
-        button.btn-sm { background: #1a1a24; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold; }
+        button.btn-primary { background: linear-gradient(135deg, #162923, #225e4c); color: #fff; border: 1px solid #287a62; padding: 6px; font-weight: bold; border-radius: 3px; cursor: pointer; font-size: 10px; margin-bottom: 2px; text-align: left; padding-left: 8px;}
+        button.btn-primary:hover { border-color: var(--accent-green); box-shadow: 0 0 5px rgba(0,255,204,0.3); }
+        button.btn-primary:disabled { background: #1a1a1f !important; color: #555 !important; border-color: #222 !important; cursor: not-allowed; }
+        button.btn-civil { background: linear-gradient(135deg, #2b1c14, #5c3926); border-color: #7a4c33; }
+        button.btn-animal { background: linear-gradient(135deg, #1a2836, #28527a); border-color: #356d9e; }
+        button.btn-advance { background: linear-gradient(135deg, #4a235a, #8e44ad); border-color: #a569bd; font-size: 11px; padding: 8px; text-align: center; animation: pulse 1.5s infinite;}
+        button.active-build { background: #78281f !important; border-color: #e74c3c !important; color: #fff !important; }
+        button.btn-sm { background: #1a1a24; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold; width: auto; }
         
-        .list-container { max-height: 120px; overflow-y: auto; border: 1px solid #1a1a24; padding: 4px; background: #0a0a0d; }
-        #adviceBox { display: none; width: 100%; max-width: 1000px; margin-top: 10px; background: #16130a; border: 1px solid #4d3d00; color: #ffda6a; padding: 8px; border-radius: 6px; font-size: 11px; text-align: center; font-weight: bold; }
-        .era-panel { background: #1a1505; border: 1px solid #c9a227; padding: 8px; border-radius: 4px; margin-bottom: 5px; text-align: center;}
+        .list-container { max-height: 130px; overflow-y: auto; border: 1px solid var(--border-color); padding: 4px; background: #0a0a0d; border-radius: 3px; }
+        #adviceBox { position: absolute; bottom: 10px; left: 10px; z-index: 200; width: calc(100% - 340px); max-width: 600px; background: rgba(22, 19, 10, 0.9); border: 1px solid #4d3d00; color: #ffda6a; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.4); }
+        .era-panel { background: #16130a; border: 1px solid #c9a227; padding: 8px; border-radius: 4px; text-align: center;}
         
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
-        select.role-select { background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; font-size: 10px; padding: 2px; margin-left: 5px;}
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.01); } 100% { transform: scale(1); } }
+        select.role-select { background: #1a1a24; color: #ddd; border: 1px solid var(--border-color); border-radius: 3px; font-size: 10px; padding: 2px; }
         
         @media (max-width: 768px) {
+            .game-area { flex-direction: column-reverse; }
+            .sidebar { width: 100%; height: 220px; border-left: none; border-top: 1px solid var(--border-color); }
+            #adviceBox { display: none; }
             .map-grid { grid-template-columns: 1fr; }
-            .sidebar { width: 100%; }
-            .game-area { flex-direction: column; }
         }
     </style>
 </head>
@@ -96,30 +116,30 @@
 
     <!-- Menú de Selección de Mapas -->
     <div id="startupMenu">
-        <h1 style="font-size: 20px; color: var(--accent-gold); margin-bottom: 5px;">📜 SELECCIONA TU MUNDO 📜</h1>
-        <p style="font-size: 12px; text-align: center; margin: 0 10px;">1,000,000 de recursos iniciales distribuidos según el bioma.</p>
+        <h1 style="font-size: 22px; color: var(--accent-gold); margin-bottom: 5px;">📜 SELECCIONA TU MUNDO 📜</h1>
+        <p style="font-size: 12px; text-align: center; margin: 0 10px; color: #aaa;">1,000,000 de recursos iniciales distribuidos según el bioma escogido.</p>
         <div class="map-grid">
-            <div class="map-card" onclick="startGame('selva')">
+            <div class="map-card" id="btnSelva">
                 <h3>🌴 Selva Tropical y Río</h3>
                 <p>50% Madera, 40% Alimento, 5% Piedra, 5% Oro</p>
             </div>
-            <div class="map-card" onclick="startGame('bosque')">
+            <div class="map-card" id="btnBosque">
                 <h3>🌲 Bosque y Alpes</h3>
                 <p>40% Madera, 25% Alimento, 15% Piedra, 20% Oro</p>
             </div>
-            <div class="map-card" onclick="startGame('desierto')">
+            <div class="map-card" id="btnDesierto">
                 <h3>🐪 Desierto y Mar</h3>
                 <p>50% Oro, 25% Alimento, 15% Piedra, 10% Madera</p>
             </div>
-            <div class="map-card" onclick="startGame('islas')">
+            <div class="map-card" id="btnIslas">
                 <h3>🏝️ Conjunto de Islas</h3>
                 <p>40% Alimento, 30% Madera, 20% Oro, 10% Piedra</p>
             </div>
-            <div class="map-card" onclick="startGame('tundra')">
+            <div class="map-card" id="btnTundra">
                 <h3>❄️ Tundra de Siberia</h3>
                 <p>60% Oro, 20% Piedra, 10% Alimento, 10% Madera</p>
             </div>
-            <div class="map-card" onclick="startMapEditor()">
+            <div class="map-card" id="btnEditor">
                 <h3>🛠️ Mapa Libre (Tú diseñas)</h3>
                 <p>Equilibrio 25% en todo. Pinta tu propio mapa.</p>
             </div>
@@ -135,15 +155,14 @@
         <div class="editor-btn" style="background:#1a5276;" onclick="selectBrush(3)" title="Agua"></div>
         <div class="editor-btn" style="background:#e0f0ff;" onclick="selectBrush(4)" title="Nieve"></div>
         <div class="editor-btn" style="background:#6c7a89;" onclick="selectBrush(8)" title="Montaña"></div>
-        <button class="btn-primary" style="width:100%; padding: 10px; margin-top: 10px;" onclick="finishEditor()">✅ TERMINAR Y JUGAR</button>
+        <button class="btn-primary" style="width:100%; padding: 8px; margin-top: 5px; text-align:center;" id="btnFinishEditor">✅ TERMINAR Y JUGAR</button>
     </div>
 
     <header>
-        <div><button class="btn-sm" onclick="toggleMenu()">☰ Menú</button></div>
         <h1>WorldZeit // Dinastía Core</h1>
         <div>
-            <button class="btn-sm" onclick="zoomIn()">🔍 +</button>
-            <button class="btn-sm" onclick="zoomOut()">🔍 -</button>
+            <button class="btn-sm" id="btnZoomIn">🔍 +</button>
+            <button class="btn-sm" id="btnZoomOut">🔍 -</button>
         </div>
     </header>
 
@@ -160,18 +179,62 @@
     <div class="game-area" id="gameArea">
         <div class="canvas-container" id="canvasContainer">
             <canvas id="gameCanvas" width="1600" height="1600" style="width: 800px; height: 800px;"></canvas>
+            <div id="adviceBox"><strong>Reporte:</strong> La civilización ha nacido.</div>
         </div>
+
+        <!-- Sidebar Lateral Fijo tipo RTS -->
         <div class="sidebar" id="sidebarMenu">
-            <div class="control-panel" id="dynamicControls"></div>
-            <div class="control-panel">
-                <strong>Estado del Imperio (Reasignar Roles)</strong>
-                <div class="list-container" id="buildingsControl"></div>
-                <div class="list-container" id="unitsControl" style="margin-top:5px;"></div>
+            <div class="sidebar-tabs">
+                <button class="tab-btn active" onclick="switchTab('buildTab', this)">🏛️ Edificios</button>
+                <button class="tab-btn" onclick="switchTab('unitsTab', this)">⚔️ Fuerzas</button>
+                <button class="tab-btn" onclick="switchTab('empireTab', this)">👑 Imperio</button>
+            </div>
+
+            <!-- Pestaña 1: Construcción y Era -->
+            <div class="tab-content active" id="buildTab">
+                <div id="eraSectionContainer"></div>
+                <div class="control-section">
+                    <strong>Construir (Clic en Mapa)</strong>
+                    <div id="buildingButtonsContainer" style="display:flex; flex-direction:column; gap:3px;"></div>
+                </div>
+            </div>
+
+            <!-- Pestaña 2: Unidades Militares y Fauna -->
+            <div class="tab-content" id="unitsTab">
+                <div class="control-section">
+                    <strong>Reclutamiento Militar</strong>
+                    <div id="militaryButtonsContainer" style="display:flex; flex-direction:column; gap:3px;"></div>
+                </div>
+                <div class="control-section">
+                    <strong>Reclutar Aldeanos (50🍖)</strong>
+                    <div style="display:flex; flex-direction:column; gap:3px;">
+                        <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor</button>
+                        <button class="btn-primary btn-civil" onclick="recruitCivilian('agricultor', 50)">👩🏼‍🌾 Agricultor</button>
+                        <button class="btn-primary btn-civil" onclick="recruitCivilian('leñador', 50)">🪓 Leñador</button>
+                        <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 50)">⚒️ Minero</button>
+                        <button class="btn-primary btn-civil" onclick="recruitCivilian('pescador', 50)">🎣 Pescador</button>
+                        <button class="btn-primary btn-civil" onclick="recruitCivilian('cazador', 50)">🏹 Cazador</button>
+                    </div>
+                </div>
+                <div class="control-section">
+                    <strong>Control de Plagas</strong>
+                    <button class="btn-primary btn-animal" onclick="buyCat()">🐈 Comprar Gato (20🪙)</button>
+                </div>
+            </div>
+
+            <!-- Pestaña 3: Gestión del Imperio -->
+            <div class="tab-content" id="empireTab">
+                <div class="control-section">
+                    <strong>Edificios Activos</strong>
+                    <div class="list-container" id="buildingsControl"></div>
+                </div>
+                <div class="control-section">
+                    <strong>Estado y Roles de Población</strong>
+                    <div class="list-container" id="unitsControl"></div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div id="adviceBox"><strong>Reporte:</strong> La civilización ha nacido.</div>
 
     <script>
         const canvas = document.getElementById("gameCanvas");
@@ -182,7 +245,7 @@
         let isDragging = false, startX, startY;
         let selectedBuildingType = null;
         
-        let gameState = 'menu'; // 'menu', 'editor', 'playing'
+        let gameState = 'menu'; 
         let currentBrush = 0;
         let mapTypeSelected = '';
 
@@ -229,7 +292,14 @@
             };
         }
 
-        window.startGame = function(type) {
+        window.switchTab = function(tabId, btnElement) {
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(tb => tb.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btnElement.classList.add('active');
+        }
+
+        function startGame(type) {
             document.getElementById('startupMenu').style.display = 'none';
             mapTypeSelected = type;
             state = getEmptyState();
@@ -245,11 +315,10 @@
             activateGameUI();
         }
 
-        window.startMapEditor = function() {
+        function startMapEditor() {
             document.getElementById('startupMenu').style.display = 'none';
             document.getElementById('editorPanel').style.display = 'flex';
             document.getElementById('gameArea').style.display = 'flex';
-            document.getElementById('sidebarMenu').classList.add('hidden'); 
             
             gameState = 'editor';
             state = getEmptyState();
@@ -263,9 +332,8 @@
             event.target.classList.add('active');
         }
 
-        window.finishEditor = function() {
+        function finishEditor() {
             document.getElementById('editorPanel').style.display = 'none';
-            document.getElementById('sidebarMenu').classList.remove('hidden');
             mapTypeSelected = 'custom';
             state.resources = { gold: 250000, wood: 250000, food: 250000, stone: 250000, skin: 0 };
             spawnInitialSetup();
@@ -276,7 +344,6 @@
             gameState = 'playing';
             document.getElementById('mainDashboard').style.display = 'flex';
             document.getElementById('gameArea').style.display = 'flex';
-            document.getElementById('adviceBox').style.display = 'block';
             renderDynamicUI(); updateVision(); updateUI();
             
             if(!window.logicInterval) {
@@ -363,51 +430,44 @@
             }
         }
 
-        window.toggleMenu = () => document.getElementById('sidebarMenu').classList.toggle('hidden');
-
         function renderDynamicUI() {
             if (gameState !== 'playing') return;
-            let html = "";
+            
+            // Era / Tech section
+            let eraHtml = "";
             let nextEra = ERAS[state.eraIndex + 1];
             if (nextEra) {
                 let req = nextEra.req;
                 let canAdvance = state.resources.gold >= req.g && state.resources.wood >= req.w && state.resources.food >= req.f && state.resources.stone >= req.s;
-                html += `<div class="era-panel">
-                            <strong style="color:var(--accent-gold)">Siguiente Era: ${nextEra.name}</strong>
-                            <div style="font-size:10px; margin: 4px 0; color:#aaa;">Costo: ${req.g}🪙 | ${req.w}🌲 | ${req.f}🍖 | ${req.s}🪨</div>`;
-                if(canAdvance) html += `<button class="btn-primary btn-advance" onclick="advanceEra()">🌟 ¡AVANZAR DE ERA!</button>`;
-                else html += `<button class="btn-primary" disabled>Faltan Recursos</button>`;
-                html += `</div>`;
+                eraHtml += `<div class="era-panel">
+                            <strong style="color:var(--accent-gold)">Siguiente: ${nextEra.name}</strong>
+                            <div style="font-size:9px; margin: 3px 0; color:#aaa;">${req.g}🪙 | ${req.w}🌲 | ${req.f}🍖 | ${req.s}🪨</div>`;
+                if(canAdvance) eraHtml += `<button class="btn-primary btn-advance" onclick="advanceEra()">🌟 ¡AVANZAR DE ERA!</button>`;
+                else eraHtml += `<button class="btn-primary" disabled style="text-align:center;">Faltan Recursos</button>`;
+                eraHtml += `</div>`;
             } else {
-                html += `<div class="era-panel"><strong style="color:var(--accent-gold)">🌟 Edad Espacial Alcanzada (Max)</strong></div>`;
+                eraHtml += `<div class="era-panel"><strong style="color:var(--accent-gold)">🌟 Era Espacial (Max)</strong></div>`;
             }
+            document.getElementById('eraSectionContainer').innerHTML = eraHtml;
 
-            html += `<strong>Construcción (Haz clic en mapa)</strong>`;
+            // Buildings Section
+            let bHtml = "";
             Object.keys(BLDG_DATA).forEach(bName => {
                 let b = BLDG_DATA[bName];
                 if (state.eraIndex >= b.era) {
                     let activeClass = selectedBuildingType === bName ? 'active-build' : '';
-                    html += `<button class="btn-primary ${activeClass}" onclick="selectBuilding('${bName}')">🏛️ ${bName} (${b.w}M, ${b.s}P)</button>`;
+                    bHtml += `<button class="btn-primary ${activeClass}" onclick="selectBuilding('${bName}')">🏛️ ${bName} (${b.w}🌲, ${b.s}🪨)</button>`;
                 }
             });
+            document.getElementById('buildingButtonsContainer').innerHTML = bHtml;
 
+            // Military Section
             let isIndustrial = state.eraIndex >= 4;
-            html += `<strong>Fuerzas Armadas</strong>
-                     <button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 ${isIndustrial?'Soldado 🔫':'Soldado ⚔️'} (40O, 20C)</button>`;
-            if(state.eraIndex >= 1) html += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 ${isIndustrial?'Vehículo 🚙':'Caballería 🏇🏼'} (80O, 50C)</button>`;
-
-            html += `<strong>Reclutar Aldeano (50🍖)</strong>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('agricultor', 50)">👩🏼‍🌾 Agricultor</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('leñador', 50)">🪓 Leñador</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('minero', 50)">⚒️ Minero</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('pescador', 50)">🎣 Pescador</button>
-                     <button class="btn-primary btn-civil" onclick="recruitCivilian('cazador', 50)">🏹 Cazador</button>`;
-                     
-            html += `<strong>Control de Plagas</strong>
-                     <button class="btn-primary btn-animal" onclick="buyCat()">🐈 Comprar Gato (20O)</button>`;
-            
-            document.getElementById('dynamicControls').innerHTML = html;
+            let mHtml = `<button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 ${isIndustrial?'Soldado 🔫':'Soldado ⚔️'} (40🪙, 20🍖)</button>`;
+            if(state.eraIndex >= 1) {
+                mHtml += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 ${isIndustrial?'Vehículo 🚙':'Caballería 🏇🏼'} (80🪙, 50🍖)</button>`;
+            }
+            document.getElementById('militaryButtonsContainer').innerHTML = mHtml;
         }
 
         window.selectBuilding = function(type) { selectedBuildingType = selectedBuildingType === type ? null : type; renderDynamicUI(); }
@@ -455,15 +515,13 @@
             document.getElementById('startupMenu').style.display = 'flex';
             document.getElementById('mainDashboard').style.display = 'none';
             document.getElementById('gameArea').style.display = 'none';
-            document.getElementById('adviceBox').style.display = 'none';
             
             let preservedEra = oldEra;
-            const originalStartGame = window.startGame;
+            let originalStartGame = startGame;
             window.startGame = function(type) {
                 originalStartGame(type);
                 state.eraIndex = preservedEra;
                 document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
-                window.startGame = originalStartGame; 
             }
         }
 
@@ -667,16 +725,16 @@
             document.getElementById("skinVal").innerText = Math.floor(state.resources.skin);
             document.getElementById("adviceBox").innerHTML = `<strong>Reporte:</strong> ${state.messages}`;
 
-            let bHtml = ""; state.buildings.forEach(b => bHtml += `<div>🏛️ ${b.type} (${b.complete?'Activo':'Construyendo...'} - ${Math.floor(b.hp)} HP)</div>`);
-            document.getElementById("buildingsControl").innerHTML = bHtml;
+            let bHtml = ""; state.buildings.forEach(b => bHtml += `<div style="font-size:10px; margin-bottom:2px;">🏛️ ${b.type} (${b.complete?'Activo':'Construyendo...'} - ${Math.floor(b.hp)} HP)</div>`);
+            document.getElementById("buildingsControl").innerHTML = bHtml || '<div style="font-size:10px; color:#666;">Sin edificios</div>';
 
             let uHtml = "";
             let rey = state.units.find(u=>u.type==='rey'); 
-            if(rey) uHtml += `<div style="color:gold; font-weight:bold;">👑 Rey ${rey.inRefuge?'(Refugiado 🛡️)':''} (${Math.floor(rey.hp)} HP)</div>`;
+            if(rey) uHtml += `<div style="color:gold; font-weight:bold; font-size:10px; margin-bottom:4px;">👑 Rey ${rey.inRefuge?'(Refugiado 🛡️)':''} (${Math.floor(rey.hp)} HP)</div>`;
             
             state.units.filter(u=>u.type!=='rey').forEach(u => {
                 if(u.type === 'civil') {
-                    uHtml += `<div style="margin:2px 0;">• Aldeano: 
+                    uHtml += `<div style="margin:3px 0; font-size:10px; display:flex; justify-content:space-between; align-items:center;"><span>Aldeano:</span> 
                         <select class="role-select" onchange="changeRole(${u.id}, this.value)">
                             <option value="constructor" ${u.role==='constructor'?'selected':''}>🔨 Const.</option>
                             <option value="agricultor" ${u.role==='agricultor'?'selected':''}>👩🏼‍🌾 Agríc.</option>
@@ -687,15 +745,21 @@
                         </select>
                     </div>`;
                 } else {
-                    uHtml += `<div>• ${u.type === 'soldado' ? '🪖 Soldado' : u.type}</div>`;
+                    uHtml += `<div style="font-size:10px; margin-bottom:2px;">• ${u.type === 'soldado' ? '🪖 Soldado' : u.type}</div>`;
                 }
             });
             document.getElementById("unitsControl").innerHTML = uHtml;
-            renderDynamicUI();
         }
 
-        window.zoomIn = () => camera.zoom = Math.min(camera.zoom + 0.2, 2.5);
-        window.zoomOut = () => camera.zoom = Math.max(camera.zoom - 0.2, 0.5);
+        document.getElementById('btnSelva').addEventListener('click', () => startGame('selva'));
+        document.getElementById('btnBosque').addEventListener('click', () => startGame('bosque'));
+        document.getElementById('btnDesierto').addEventListener('click', () => startGame('desierto'));
+        document.getElementById('btnIslas').addEventListener('click', () => startGame('islas'));
+        document.getElementById('btnTundra').addEventListener('click', () => startGame('tundra'));
+        document.getElementById('btnEditor').addEventListener('click', startMapEditor);
+        document.getElementById('btnFinishEditor').addEventListener('click', finishEditor);
+        document.getElementById('btnZoomIn').addEventListener('click', () => camera.zoom = Math.min(camera.zoom + 0.2, 2.5));
+        document.getElementById('btnZoomOut').addEventListener('click', () => camera.zoom = Math.max(camera.zoom - 0.2, 0.5));
 
         const container = document.getElementById("canvasContainer");
         container.addEventListener("mousedown", e => { isDragging = true; startX = e.clientX - camera.x; startY = e.clientY - camera.y; container.style.cursor = "grabbing"; });
