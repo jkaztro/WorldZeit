@@ -271,7 +271,7 @@
             3: "#1a5276", 4: "#e0f0ff", 7: "#123048", 8: "#6c7a89" 
         };
 
-        // Requisitos ajustados y exigentes para avanzar de era
+        // Requisitos ajustados para avanzar de era
         const ERAS = [
             { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0 } },
             { name: "Edad de Bronce", req: { g: 15000, w: 20000, f: 20000, s: 15000 } },
@@ -392,7 +392,6 @@
             }
         }
 
-        // Sistema determina rol automático según tipo de mapa y recursos existentes
         function getAutomaticRole() {
             if (mapTypeSelected === 'selva' || mapTypeSelected === 'bosque') return 'leñador';
             if (mapTypeSelected === 'desierto' || mapTypeSelected === 'tundra') return 'minero';
@@ -796,7 +795,6 @@
                 if (gameState === 'editor') {
                     state.terrain[mapY][mapX] = currentBrush; 
                 } else if (gameState === 'playing') {
-                    // Ver si el clic fue en una ubicación con animales salvajes para convocar cazador
                     let wildAnimalHere = state.wildAnimals.find(w => w.x === mapX && w.y === mapY);
                     let hasCentroUrbano = state.buildings.some(b => b.type === "Centro urbano 🏦" && b.complete);
                     if (wildAnimalHere) {
