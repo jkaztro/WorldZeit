@@ -17,47 +17,49 @@
         /* Menú de Inicio (Mapas) */
         #startupMenu {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.9); z-index: 1000; display: flex;
+            background: rgba(0, 0, 0, 0.95); z-index: 1000; display: flex;
             flex-direction: column; align-items: center; justify-content: center;
         }
         .map-grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 800px; margin-top: 20px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-width: 800px; margin-top: 20px;
+            padding: 10px; box-sizing: border-box;
         }
         .map-card {
             background: #1a1a24; border: 1px solid var(--accent-gold); padding: 15px; border-radius: 8px;
             cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; text-align: center;
         }
         .map-card:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--accent-gold); }
-        .map-card h3 { margin: 0 0 10px 0; color: var(--accent-green); }
-        .map-card p { margin: 0; font-size: 12px; color: #aaa; }
+        .map-card h3 { margin: 0 0 10px 0; color: var(--accent-green); font-size: 14px; }
+        .map-card p { margin: 0; font-size: 11px; color: #aaa; }
         
         /* Editor Mode */
         #editorPanel {
             display: none; position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
             background: rgba(17, 17, 21, 0.9); padding: 15px; border: 2px solid var(--accent-green);
-            border-radius: 8px; z-index: 500; display: flex; gap: 10px; align-items: center;
+            border-radius: 8px; z-index: 500; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center;
         }
-        .editor-btn {
-            width: 40px; height: 40px; border: 2px solid #555; border-radius: 5px; cursor: pointer;
-        }
+        .editor-btn { width: 35px; height: 35px; border: 2px solid #555; border-radius: 5px; cursor: pointer; }
         .editor-btn.active { border-color: var(--accent-gold); transform: scale(1.1); }
         
         /* Estructura Principal */
         header { text-align: center; margin-bottom: 10px; display: flex; justify-content: space-between; width: 100%; max-width: 1000px; align-items: center; }
-        h1 { margin: 0; font-size: 16px; color: var(--accent-green); letter-spacing: 2px; text-transform: uppercase; }
+        h1 { margin: 0; font-size: 14px; color: var(--accent-green); letter-spacing: 1px; text-transform: uppercase; }
+        
         .dashboard {
-            display: flex; gap: 15px; background: var(--panel-bg); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 6px;
+            display: none; gap: 15px; background: var(--panel-bg); border: 1px solid var(--border-color); padding: 8px 15px; border-radius: 6px;
             font-size: 12px; font-weight: bold; margin-bottom: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); justify-content: center;
-            width: 100%; max-width: 1000px; flex-wrap: wrap; visibility: hidden;
+            width: 100%; max-width: 1000px; flex-wrap: wrap;
         }
         .resource-item span { color: var(--accent-gold); }
         .era-item { color: var(--accent-era); font-size: 14px; }
-        .game-area { display: flex; gap: 10px; width: 100%; max-width: 1000px; flex-grow: 1; max-height: 600px; visibility: hidden; }
+        
+        .game-area { display: none; gap: 10px; width: 100%; max-width: 1000px; flex-grow: 1; max-height: 600px; }
         .canvas-container {
             position: relative; overflow: hidden; border: 2px solid var(--border-color); background: #0d0d11; border-radius: 6px;
             flex-grow: 1; display: flex; justify-content: center; align-items: center; cursor: crosshair;
         }
         canvas { display: block; transform-origin: 0 0; }
+        
         .sidebar { width: 300px; display: flex; flex-direction: column; gap: 10px; transition: all 0.3s ease; }
         .sidebar.hidden { display: none; }
         .control-panel {
@@ -65,6 +67,7 @@
             display: flex; flex-direction: column; gap: 5px; flex-grow: 1; overflow-y: auto; max-height: 400px;
         }
         .control-panel strong { color: var(--accent-green); border-bottom: 1px solid var(--border-color); padding-bottom: 4px; margin-bottom: 4px; text-align: center; display: block; margin-top: 5px; }
+        
         button { width: 100%; box-sizing: border-box; }
         button.btn-primary { background: linear-gradient(135deg, #1f4037, #99f2c8); color: #0c0c0e; border: none; padding: 6px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; font-size: 10px; margin-bottom: 3px; }
         button.btn-primary:hover { box-shadow: 0 0 8px var(--accent-green); }
@@ -74,20 +77,27 @@
         button.btn-advance { background: linear-gradient(135deg, #8e44ad, #f1c40f); color: #000; font-size: 12px; padding: 8px; animation: pulse 1.5s infinite;}
         button.active-build { background: #ff4444 !important; color: #fff !important; }
         button.btn-sm { background: #1a1a24; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold; }
-        button.btn-sm:hover { background: var(--accent-green); color: #000; }
+        
         .list-container { max-height: 120px; overflow-y: auto; border: 1px solid #1a1a24; padding: 4px; background: #0a0a0d; }
-        #adviceBox { width: 100%; max-width: 1000px; margin-top: 10px; background: #16130a; border: 1px solid #4d3d00; color: #ffda6a; padding: 8px; border-radius: 6px; font-size: 11px; text-align: center; font-weight: bold; visibility: hidden;}
+        #adviceBox { display: none; width: 100%; max-width: 1000px; margin-top: 10px; background: #16130a; border: 1px solid #4d3d00; color: #ffda6a; padding: 8px; border-radius: 6px; font-size: 11px; text-align: center; font-weight: bold; }
         .era-panel { background: #1a1505; border: 1px solid #c9a227; padding: 8px; border-radius: 4px; margin-bottom: 5px; text-align: center;}
+        
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
         select.role-select { background: #222; color: #ddd; border: 1px solid #444; border-radius: 3px; font-size: 10px; padding: 2px; margin-left: 5px;}
+        
+        @media (max-width: 768px) {
+            .map-grid { grid-template-columns: 1fr; }
+            .sidebar { width: 100%; }
+            .game-area { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
 
     <!-- Menú de Selección de Mapas -->
     <div id="startupMenu">
-        <h1 style="font-size: 24px; color: var(--accent-gold);">📜 SELECCIONA TU MUNDO 📜</h1>
-        <p>1,000,000 de recursos iniciales distribuidos según el bioma.</p>
+        <h1 style="font-size: 20px; color: var(--accent-gold); margin-bottom: 5px;">📜 SELECCIONA TU MUNDO 📜</h1>
+        <p style="font-size: 12px; text-align: center; margin: 0 10px;">1,000,000 de recursos iniciales distribuidos según el bioma.</p>
         <div class="map-grid">
             <div class="map-card" onclick="startGame('selva')">
                 <h3>🌴 Selva Tropical y Río</h3>
@@ -117,15 +127,15 @@
     </div>
 
     <!-- Panel de Edición de Mapa -->
-    <div id="editorPanel" style="display:none;">
-        <strong style="color:white;">Pincel:</strong>
+    <div id="editorPanel">
+        <strong style="color:white; width: 100%; text-align: center;">🎨 Pincel de Terreno:</strong>
         <div class="editor-btn active" style="background:#253b25;" onclick="selectBrush(0)" title="Pasto"></div>
         <div class="editor-btn" style="background:#152d15;" onclick="selectBrush(1)" title="Bosque"></div>
         <div class="editor-btn" style="background:#d4c391;" onclick="selectBrush(2)" title="Arena"></div>
         <div class="editor-btn" style="background:#1a5276;" onclick="selectBrush(3)" title="Agua"></div>
         <div class="editor-btn" style="background:#e0f0ff;" onclick="selectBrush(4)" title="Nieve"></div>
         <div class="editor-btn" style="background:#6c7a89;" onclick="selectBrush(8)" title="Montaña"></div>
-        <button class="btn-primary" style="width:auto; padding: 10px; margin-left: 20px;" onclick="finishEditor()">✅ TERMINAR Y JUGAR</button>
+        <button class="btn-primary" style="width:100%; padding: 10px; margin-top: 10px;" onclick="finishEditor()">✅ TERMINAR Y JUGAR</button>
     </div>
 
     <header>
@@ -173,23 +183,17 @@
         let selectedBuildingType = null;
         
         let gameState = 'menu'; // 'menu', 'editor', 'playing'
-        let currentBrush = 0; // Para el editor
+        let currentBrush = 0;
         let mapTypeSelected = '';
 
-        // Tonalidades de biomas ampliadas
         const colors = { 
-            0: "#253b25", // Pasto/Tierra normal
-            1: "#152d15", // Bosque denso
-            2: "#d4c391", // Arena/Desierto
-            3: "#1a5276", // Agua
-            4: "#e0f0ff", // Nieve/Tundra
-            7: "#123048", // Océano profundo (opcional)
-            8: "#6c7a89"  // Montaña/Roca
+            0: "#253b25", 1: "#152d15", 2: "#d4c391", 
+            3: "#1a5276", 4: "#e0f0ff", 7: "#123048", 8: "#6c7a89" 
         };
 
         const ERAS = [
             { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0 } },
-            { name: "Edad de Bronce", req: { g: 2000, w: 2000, f: 2000, s: 2000 } }, // Costos aumentados por el millón inicial
+            { name: "Edad de Bronce", req: { g: 2000, w: 2000, f: 2000, s: 2000 } },
             { name: "Edad Medieval", req: { g: 15000, w: 15000, f: 15000, s: 15000 } },
             { name: "Renacimiento", req: { g: 50000, w: 40000, f: 40000, s: 50000 } },
             { name: "Edad Industrial", req: { g: 120000, w: 90000, f: 90000, s: 120000 } },
@@ -225,24 +229,16 @@
             };
         }
 
-        // SISTEMA DE INICIO Y MAPAS
         window.startGame = function(type) {
             document.getElementById('startupMenu').style.display = 'none';
             mapTypeSelected = type;
             state = getEmptyState();
             
-            // Asignación Matemática (1,000,000 recursos iniciales)
-            if (type === 'selva') {
-                state.resources = { wood: 500000, food: 400000, stone: 50000, gold: 50000, skin: 0 };
-            } else if (type === 'bosque') {
-                state.resources = { wood: 400000, food: 250000, stone: 150000, gold: 200000, skin: 0 };
-            } else if (type === 'desierto') {
-                state.resources = { gold: 500000, food: 250000, stone: 150000, wood: 100000, skin: 0 };
-            } else if (type === 'islas') {
-                state.resources = { food: 400000, wood: 300000, gold: 200000, stone: 100000, skin: 0 };
-            } else if (type === 'tundra') {
-                state.resources = { gold: 600000, stone: 200000, food: 100000, wood: 100000, skin: 0 };
-            }
+            if (type === 'selva') state.resources = { wood: 500000, food: 400000, stone: 50000, gold: 50000, skin: 0 };
+            else if (type === 'bosque') state.resources = { wood: 400000, food: 250000, stone: 150000, gold: 200000, skin: 0 };
+            else if (type === 'desierto') state.resources = { gold: 500000, food: 250000, stone: 150000, wood: 100000, skin: 0 };
+            else if (type === 'islas') state.resources = { food: 400000, wood: 300000, gold: 200000, stone: 100000, skin: 0 };
+            else if (type === 'tundra') state.resources = { gold: 600000, stone: 200000, food: 100000, wood: 100000, skin: 0 };
 
             generateBiomeTerrain(type);
             spawnInitialSetup();
@@ -252,13 +248,11 @@
         window.startMapEditor = function() {
             document.getElementById('startupMenu').style.display = 'none';
             document.getElementById('editorPanel').style.display = 'flex';
-            document.getElementById('gameArea').style.visibility = 'visible';
-            document.getElementById('canvasContainer').style.visibility = 'visible';
-            document.getElementById('sidebarMenu').classList.add('hidden'); // Ocultar sidebar en editor
+            document.getElementById('gameArea').style.display = 'flex';
+            document.getElementById('sidebarMenu').classList.add('hidden'); 
             
             gameState = 'editor';
             state = getEmptyState();
-            // Llenar de pasto inicial
             for (let y = 0; y < MAP_SIZE; y++) for (let x = 0; x < MAP_SIZE; x++) state.terrain[y][x] = 0;
             requestAnimationFrame(renderLoop);
         }
@@ -280,12 +274,11 @@
 
         function activateGameUI() {
             gameState = 'playing';
-            document.getElementById('mainDashboard').style.visibility = 'visible';
-            document.getElementById('gameArea').style.visibility = 'visible';
-            document.getElementById('adviceBox').style.visibility = 'visible';
+            document.getElementById('mainDashboard').style.display = 'flex';
+            document.getElementById('gameArea').style.display = 'flex';
+            document.getElementById('adviceBox').style.display = 'block';
             renderDynamicUI(); updateVision(); updateUI();
             
-            // Iniciar loops si no estaban iniciados
             if(!window.logicInterval) {
                 window.logicInterval = setInterval(gameLogicTick, 1000);
                 window.yearInterval = setInterval(() => { state.year++; document.getElementById("yearVal").innerText = state.year; }, 10000); 
@@ -298,30 +291,28 @@
                 for (let x = 0; x < MAP_SIZE; x++) {
                     let t = 0;
                     if (type === 'selva') {
-                        t = Math.random() < 0.4 ? 1 : 0; // Mucho bosque
-                        if (x > 15 && x < 20) t = 3; // Gran río
+                        t = Math.random() < 0.4 ? 1 : 0; 
+                        if (x > 15 && x < 20) t = 3; 
                     } else if (type === 'bosque') {
-                        t = Math.random() < 0.3 ? 8 : (Math.random() < 0.4 ? 1 : 0); // Alpes y bosque
+                        t = Math.random() < 0.3 ? 8 : (Math.random() < 0.4 ? 1 : 0); 
                     } else if (type === 'desierto') {
-                        t = Math.random() < 0.8 ? 2 : 0; // Mucha arena
-                        if (y > MAP_SIZE - 10) t = 3; // Mar al sur
+                        t = Math.random() < 0.8 ? 2 : 0; 
+                        if (y > MAP_SIZE - 10) t = 3; 
                     } else if (type === 'islas') {
-                        t = 3; // Fondo de agua
+                        t = 3; 
                         if (Math.hypot(x-10, y-10) < 6 || Math.hypot(x-30, y-25) < 7 || Math.hypot(x-20, y-20) < 5) t = Math.random() < 0.5 ? 0 : 2; 
                     } else if (type === 'tundra') {
-                        t = Math.random() < 0.7 ? 4 : (Math.random() < 0.5 ? 8 : 0); // Nieve y piedra
+                        t = Math.random() < 0.7 ? 4 : (Math.random() < 0.5 ? 8 : 0); 
                     }
                     state.terrain[y][x] = t;
                 }
             }
-            respawnNature(false, true); // Genera los recursos naturales y animales del bioma
+            respawnNature(false, true);
         }
 
         function spawnInitialSetup() {
-            // Limpiar área central para el spawn seguro del Rey
             for(let dy=-2; dy<=2; dy++) {
                 for(let dx=-2; dx<=2; dx++) {
-                    // Forzar pasto o arena o nieve, nunca agua ni piedra en el centro exacto
                     let b = state.terrain[20+dy][20+dx];
                     if (b === 3 || b === 8) state.terrain[20+dy][20+dx] = (mapTypeSelected==='desierto'?2:(mapTypeSelected==='tundra'?4:0)); 
                 }
@@ -338,7 +329,7 @@
                 { id: 2, type: "civil", role: r1, x: 19, y: 20, hp: 100, kills: 0, pet: null },
                 { id: 3, type: "civil", role: r2, x: 19, y: 21, hp: 100, kills: 0, pet: null }
             );
-            state.messages = `La civilización se asienta en ${mapTypeSelected.toUpperCase()}. El rey, 2 aldeanos y 1 soldado inician el legado.`;
+            state.messages = `La civilización se asienta. El rey, 2 aldeanos y 1 soldado inician el legado.`;
         }
 
         function respawnNature(isRenewal = false, isFirstLoad = false) {
@@ -351,7 +342,7 @@
             else if (mapTypeSelected === 'desierto') animals = ['🐪', '🦂', '🐍', '🦅'];
             else if (mapTypeSelected === 'islas') animals = ['🐢', '🦆', '🐒'];
             else if (mapTypeSelected === 'tundra') animals = ['🐻‍❄️', '🐧', '🐺', '🦭'];
-            else animals = ['🦌', '🐺', '🐻']; // Custom
+            else animals = ['🦌', '🐺', '🐻']; 
             
             let aquatic = ['🐟', '🦀'];
 
@@ -401,12 +392,9 @@
             });
 
             let isIndustrial = state.eraIndex >= 4;
-            let solName = isIndustrial ? 'Soldado 🔫' : 'Soldado ⚔️';
-            let cavName = isIndustrial ? 'Vehículo 🚙' : 'Caballería 🏇🏼';
-
             html += `<strong>Fuerzas Armadas</strong>
-                     <button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 ${solName} (40O, 20C)</button>`;
-            if(state.eraIndex >= 1) html += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 ${cavName} (80O, 50C)</button>`;
+                     <button class="btn-primary" onclick="recruit('soldado', 40, 20)">🪖 ${isIndustrial?'Soldado 🔫':'Soldado ⚔️'} (40O, 20C)</button>`;
+            if(state.eraIndex >= 1) html += `<button class="btn-primary" onclick="recruit('caballeria', 80, 50)">🐴 ${isIndustrial?'Vehículo 🚙':'Caballería 🏇🏼'} (80O, 50C)</button>`;
 
             html += `<strong>Reclutar Aldeano (50🍖)</strong>
                      <button class="btn-primary btn-civil" onclick="recruitCivilian('constructor', 50)">🔨 Constructor</button>
@@ -451,7 +439,7 @@
                 state.resources.gold -= 20;
                 let king = state.units.find(u => u.type === 'rey');
                 state.pets.push({ x: king.x, y: king.y, icon: '🐈' });
-                state.messages = "🐈 Gato adquirido. Ayudará a controlar plagas.";
+                state.messages = "🐈 Gato adquirido.";
             }
         }
         window.changeRole = function(unitId, newRole) {
@@ -463,23 +451,19 @@
             alert("👑 ¡EL REY HA MUERTO! \n\nLa civilización colapsa y entra en decadencia. Un aldeano ha logrado huir para comenzar de nuevo...");
             let oldEra = Math.max(0, state.eraIndex - 1);
             
-            // Regresar al menú de mapas
             gameState = 'menu';
             document.getElementById('startupMenu').style.display = 'flex';
-            document.getElementById('mainDashboard').style.visibility = 'hidden';
-            document.getElementById('gameArea').style.visibility = 'hidden';
-            document.getElementById('adviceBox').style.visibility = 'hidden';
+            document.getElementById('mainDashboard').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('adviceBox').style.display = 'none';
             
-            // Preservar la era al reiniciar
             let preservedEra = oldEra;
-            
-            // Sobrescribir startGame temporalmente para aplicar la penalidad de era
             const originalStartGame = window.startGame;
             window.startGame = function(type) {
                 originalStartGame(type);
                 state.eraIndex = preservedEra;
                 document.getElementById('eraVal').innerText = ERAS[state.eraIndex].name;
-                window.startGame = originalStartGame; // Restaurar
+                window.startGame = originalStartGame; 
             }
         }
 
@@ -492,7 +476,7 @@
 
             if (mapX >= 0 && mapX < MAP_SIZE && mapY >= 0 && mapY < MAP_SIZE) {
                 if (gameState === 'editor') {
-                    state.terrain[mapY][mapX] = currentBrush; // Pintar mapa
+                    state.terrain[mapY][mapX] = currentBrush; 
                 } else if (gameState === 'playing' && selectedBuildingType) {
                     let data = BLDG_DATA[selectedBuildingType];
                     if (state.resources.wood >= data.w && state.resources.stone >= data.s) {
@@ -560,7 +544,7 @@
                                 state.wildAnimals.shift(); state.resources.food += 20 * mod;
                                 if(['🦌','🐻','🐻‍❄️','🐺','🐒'].includes(presa.icon)) state.resources.skin += 5;
                                 u.kills++;
-                                if(u.kills > 5 && !u.pet) { u.pet = '🐕‍🦺'; state.messages = "🏹 Un cazador experto ha domado un perro."; }
+                                if(u.kills > 5 && !u.pet) { u.pet = '🐕‍🦺'; state.messages = "🏹 Cazador ha domado un perro."; }
                             }
                         }
                     } else if(Math.random() < 0.2) { u.x += Math.floor(Math.random()*3)-1; u.y += Math.floor(Math.random()*3)-1; }
@@ -601,11 +585,9 @@
 
         function updateVision() {
             if (gameState === 'editor') {
-                // En el editor mostramos todo el mapa despejado
                 for(let y=0; y<MAP_SIZE; y++) for(let x=0; x<MAP_SIZE; x++) state.fog[y][x] = 2;
                 return;
             }
-
             for(let y=0; y<MAP_SIZE; y++) for(let x=0; x<MAP_SIZE; x++) if(state.fog[y][x] === 2) state.fog[y][x] = 1;
             state.units.forEach(u => {
                 let range = 4;
@@ -667,51 +649,59 @@
                     }
                 });
 
-                // Renderizar Niebla (Fog of War)
                 for(let y=0; y<MAP_SIZE; y++) {
                     for(let x=0; x<MAP_SIZE; x++) {
                         if(state.fog[y][x] === 0) { ctx.fillStyle = "rgba(5, 5, 8, 0.9)"; ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE); }
-                        else if(state.fog[y][x] === 1) { ctx.fillStyle = "rgba(5¡Entendido! Todo lo que hemos construido hasta ahora se mantiene intacto. Lo que haremos a continuación es **integrar y estructurar** esta nueva fase de arranque como una capa adicional que define el inicio de la partida. 
+                        else if(state.fog[y][x] === 1) { ctx.fillStyle = "rgba(5, 5, 8, 0.5)"; ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE); }
+                    }
+                }
+            }
+            ctx.restore(); requestAnimationFrame(renderLoop);
+        }
 
-Aquí tienes la actualización del sistema de arranque del juego, perfectamente acoplada al diseño existente:
+        function updateUI() {
+            document.getElementById("goldVal").innerText = Math.floor(state.resources.gold);
+            document.getElementById("woodVal").innerText = Math.floor(state.resources.wood);
+            document.getElementById("foodVal").innerText = Math.floor(state.resources.food);
+            document.getElementById("stoneVal").innerText = Math.floor(state.resources.stone);
+            document.getElementById("skinVal").innerText = Math.floor(state.resources.skin);
+            document.getElementById("adviceBox").innerHTML = `<strong>Reporte:</strong> ${state.messages}`;
 
----
+            let bHtml = ""; state.buildings.forEach(b => bHtml += `<div>🏛️ ${b.type} (${b.complete?'Activo':'Construyendo...'} - ${Math.floor(b.hp)} HP)</div>`);
+            document.getElementById("buildingsControl").innerHTML = bHtml;
 
-## 🗺️ Fase 1: Selección y Creación del Mapa
+            let uHtml = "";
+            let rey = state.units.find(u=>u.type==='rey'); 
+            if(rey) uHtml += `<div style="color:gold; font-weight:bold;">👑 Rey ${rey.inRefuge?'(Refugiado 🛡️)':''} (${Math.floor(rey.hp)} HP)</div>`;
+            
+            state.units.filter(u=>u.type!=='rey').forEach(u => {
+                if(u.type === 'civil') {
+                    uHtml += `<div style="margin:2px 0;">• Aldeano: 
+                        <select class="role-select" onchange="changeRole(${u.id}, this.value)">
+                            <option value="constructor" ${u.role==='constructor'?'selected':''}>🔨 Const.</option>
+                            <option value="agricultor" ${u.role==='agricultor'?'selected':''}>👩🏼‍🌾 Agríc.</option>
+                            <option value="leñador" ${u.role==='leñador'?'selected':''}>🪓 Leña.</option>
+                            <option value="minero" ${u.role==='minero'?'selected':''}>⚒️ Minero</option>
+                            <option value="pescador" ${u.role==='pescador'?'selected':''}>🎣 Pesca.</option>
+                            <option value="cazador" ${u.role==='cazador'?'selected':''}>🏹 Cazador</option>
+                        </select>
+                    </div>`;
+                } else {
+                    uHtml += `<div>• ${u.type === 'soldado' ? '🪖 Soldado' : u.type}</div>`;
+                }
+            });
+            document.getElementById("unitsControl").innerHTML = uHtml;
+            renderDynamicUI();
+        }
 
-Al iniciar una nueva partida, el jugador deberá elegir el entorno en el que establecerá su reino. Todos los mapas predefinidos inician con un total exacto de **1.000.000 de unidades de recursos**, distribuidos estratégicamente según el bioma.
+        window.zoomIn = () => camera.zoom = Math.min(camera.zoom + 0.2, 2.5);
+        window.zoomOut = () => camera.zoom = Math.max(camera.zoom - 0.2, 0.5);
 
-### Mapas Predefinidos y Distribución de Recursos
+        const container = document.getElementById("canvasContainer");
+        container.addEventListener("mousedown", e => { isDragging = true; startX = e.clientX - camera.x; startY = e.clientY - camera.y; container.style.cursor = "grabbing"; });
+        window.addEventListener("mousemove", e => { if(isDragging) { camera.x = e.clientX - startX; camera.y = e.clientY - startY; } });
+        window.addEventListener("mouseup", () => { isDragging = false; container.style.cursor = "crosshair"; });
 
-| Tipo de Mapa | Madera | Alimento | Piedra | Oro | Fauna Salvaje (Generación) |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Selva Tropical y Río** | 50% (500.000) | 40% (400.000) | 5% (50.000) | 5% (50.000) | Jaguares, capibaras, cocodrilos, monos. |
-| **Bosque y Alpes** | 40% (400.000) | 25% (250.000) | 15% (150.000) | 20% (200.000) | Osos, lobos, ciervos, jabalíes. |
-| **Desierto y Mar** | 10% (100.000) | 25% (*Marino* - 250k)| 15% (150.000) | 50% (500.000) | Camellos, escorpiones, tiburones. |
-| **Conjunto de Islas** | 30% (300.000) | 40% (*Marino* - 400k)| 10% (100.000) | 20% (200.000) | Gaviotas, tortugas, peces abundantes, cangrejos. |
-| **Tundra Fría de Siberia** | 10% (100.000) | 10% (100.000) | 20% (200.000) | 60% (600.000) | Osos polares, morsas, lobos árticos, alces. |
-
-> **Nota de Sistema:** La fauna salvaje será abundante y coherente con el tipo de mapa, funcionando tanto como fuente de alimento adicional (caza) como una amenaza natural para los aldeanos desprotegidos.
-
-### Modo Creador: Mapa Libre
-Si el jugador prefiere una experiencia personalizada, puede acceder al **Mapa Libre**. 
-* El jugador esculpe el terreno (montañas, lagos, ríos).
-* Asigna los porcentajes del millón de recursos a su gusto o altera el límite de recursos si juega en modo *sandbox*.
-
----
-
-## 👑 Fase 2: El Arranque (Unidades Iniciales)
-
-Una vez el mapa se ha renderizado, el juego te sitúa directamente en la acción con una configuración inicial minimalista pero funcional. En el centro de tu territorio aparecerá tu base y tus primeras unidades.
-
-### Disposición Inicial:
-* **La Torre (Centro de Mando):** El edificio principal desde donde gobernarás y almacenarás tus primeros recursos.
-* **El Rey:** Aparece inmediatamente al lado de la torre. Es la pieza central de tu imperio.
-* **1 Soldado:** Equipado de forma básica para proteger al Rey y a los aldeanos de las bestias salvajes iniciales.
-* **2 Aldeanos (Autogestionados por IA):** 
-  * Al hacer *spawn*, la Inteligencia Artificial del juego analiza el entorno inmediato y les asigna **automáticamente** los roles más urgentes (por ejemplo: uno a recolectar alimento cercano y otro a talar madera).
-  * **Intervención del Jugador:** Esta autogestión ayuda a que la economía arranque sola, pero el jugador tiene el control absoluto para interrumpir la IA y reasignar sus roles manualmente en cualquier momento (ej. obligar a ambos a construir un cuartel).
-
----
-
-Con esta adición, el juego tiene ahora un inicio claro, con variedad táctica dependiendo del mapa elegido, y un sistema "Plug & Play" gracias a los aldeanos inteligentes que te permiten concentrarte en la estrategia macro desde el segundo cero. Todo lo demás (edificios, investigaciones, combate avanzado) sigue activo y esperando a ser desbloqueado.
+    </script>
+</body>
+</html>
