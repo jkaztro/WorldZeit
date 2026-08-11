@@ -74,7 +74,6 @@
         }
         .dialogue-bubble strong { color: var(--accent-green); display: block; margin-bottom: 2px; }
 
-        /* NUEVO MENÚ LATERAL FLOTANTE DERECHO */
         .right-menu-dock {
             position: absolute; top: 15px; right: 15px; z-index: 450;
             display: flex; flex-direction: column; gap: 10px;
@@ -91,7 +90,6 @@
         button.btn-primary { background: linear-gradient(135deg, #162923, #225e4c); color: #fff; border: 1px solid #287a62; padding: 6px; font-weight: bold; border-radius: 3px; cursor: pointer; font-size: 10px; margin-bottom: 4px; text-align: left; padding-left: 8px;}
         button.btn-primary:hover { border-color: var(--accent-green); box-shadow: 0 0 5px rgba(0,255,204,0.3); }
         button.btn-primary:disabled { background: #1a1a1f !important; color: #555 !important; border-color: #222 !important; cursor: not-allowed; }
-        button.btn-animal { background: linear-gradient(135deg, #1a2836, #28527a); border-color: #356d9e; }
         button.btn-advance { background: linear-gradient(135deg, #4a235a, #8e44ad); border-color: #a569bd; font-size: 11px; padding: 8px; text-align: center; animation: pulse 1.5s infinite;}
         button.active-build { background: #78281f !important; border-color: #e74c3c !important; color: #fff !important; }
         button.btn-sm { background: #1a1a24; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 3px; cursor: pointer; padding: 4px 8px; font-size: 11px; font-weight: bold; width: auto; }
@@ -114,16 +112,16 @@
         #buildingModal {
             display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: #141419; border: 2px solid var(--accent-gold); padding: 20px; border-radius: 8px; z-index: 10000;
-            width: 420px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
+            width: 440px; max-height: 80vh; overflow-y: auto; box-shadow: 0 8px 24px rgba(0,0,0,0.8);
         }
         #buildingModal h3 { margin-top: 0; color: var(--accent-gold); text-align: center; font-size: 14px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;}
         #buildingModal p { font-size: 11px; line-height: 1.4; color: #ccc; }
         .modal-close { background: #78281f; color: #fff; border: none; padding: 6px; font-weight: bold; border-radius: 3px; cursor: pointer; margin-top: 10px; width: 100%; }
+        .market-row { display: flex; justify-content: space-between; align-items: center; background: #1a1a24; padding: 6px; border-radius: 3px; margin-bottom: 5px; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- Menú de Selección de Mapas -->
     <div id="startupMenu">
         <h1 style="font-size: 22px; color: var(--accent-gold); margin-bottom: 5px;">📜 SELECCIONA TU MUNDO 📜</h1>
         <p style="font-size: 12px; text-align: center; margin: 0 10px; color: #aaa;">Recursos iniciales y costos de era adaptados según el terreno.</p>
@@ -155,7 +153,6 @@
         </div>
     </div>
 
-    <!-- Panel de Edición de Mapa -->
     <div id="editorPanel">
         <strong style="color:white; width: 100%; text-align: center;">🎨 Pincel de Terreno:</strong>
         <div class="editor-btn active" style="background:#253b25;" onclick="selectBrush(0)" title="Pasto"></div>
@@ -167,7 +164,6 @@
         <button class="btn-primary" style="width:100%; padding: 8px; margin-top: 5px; text-align:center;" id="btnFinishEditor">✅ TERMINAR Y JUGAR</button>
     </div>
 
-    <!-- Modal Dinámico -->
     <div id="buildingModal">
         <h3 id="modalTitle">Panel de Gestión</h3>
         <div id="modalBody"></div>
@@ -197,7 +193,6 @@
             <div id="dialogueLog"></div>
             <button id="sosButton" onclick="openSOSModal()" title="Consejero IA SOS">🆘</button>
             
-            <!-- NUEVOS ICONOS FLOTANTES A LA DERECHA -->
             <div class="right-menu-dock">
                 <button class="dock-btn" onclick="openVillagersModal()" title="Gestionar aldeanos">🚻</button>
                 <button class="dock-btn" onclick="openBuildingsModal()" title="Edificios">🏗️</button>
@@ -247,6 +242,7 @@
             "Mina de oro 🟡": { era: 1, w: 40, s: 40, hp: 300, resourceType: 'oro', maxUnits: 1000 },
             "Minas de hierro ⚫": { era: 1, w: 40, s: 40, hp: 300, resourceType: 'hierro', maxUnits: 1000 },
             "Minas de piedra ⚪": { era: 1, w: 40, s: 40, hp: 300, resourceType: 'piedra', maxUnits: 1000 },
+            "Mercado 🛒": { era: 1, w: 100, s: 80, hp: 500, icon: '🛒' }, // NUEVO EDIFICIO MERCADO
             "Muelle ⚓": { era: 1, w: 60, s: 20, hp: 300 },
             "Iglesia ⛪": { era: 2, w: 200, s: 300, hp: 600 },
             "Castillo 🏰": { era: 2, w: 400, s: 600, hp: 1500 },
@@ -388,12 +384,10 @@
             return roles[Math.floor(Math.random() * roles.length)];
         }
 
-        // RECURSOS RENOVABLES CADA 5 AÑOS SEGÚN EXPANSIÓN
         function handleResourceDepletionAndRenewal() {
-            // Verificar si han pasado 5 años desde la última renovación general o limpieza
             if (state.year % 5 === 0) {
                 respawnNature(true, false);
-                addDialogue("♻️ Ciclo Natural", "Los recursos del mapa agotados se han renovado tras 5 años.");
+                addDialogue("♻️ Ciclo Natural", "Los recursos del mapa agotados se han renovado tras 5 años[cite: 1].");
             }
 
             state.units.forEach(u => {
@@ -498,9 +492,6 @@
             }
         }
 
-        // ==========================================
-        // VENTANAS MODALES PARA NUEVO MENÚ DERECHO
-        // ==========================================
         window.openVillagersModal = function() {
             const modal = document.getElementById('buildingModal');
             const title = document.getElementById('modalTitle');
@@ -565,14 +556,104 @@
 
             let listHtml = `<div style="margin-top:10px;"><strong>Edificios Existentes:</strong><div class="list-container" style="max-height:120px; margin-top:4px;">`;
             state.buildings.forEach((b, idx) => {
+                let extraAction = "";
+                if (b.type === "Mercado 🛒" && b.complete) {
+                    extraAction = `<button class="btn-sm" style="background:#27ae60; padding:2px 6px; font-size:9px; margin-right:4px;" onclick="openMarketInterface()">🛒 Mercado</button>`;
+                }
                 listHtml += `<div style="font-size:10px; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center; background:#1a1a24; padding:3px; border-radius:3px;">
                     <span>${b.type} (${b.complete?'Activo':'Construyendo...'} - ${Math.floor(b.hp)} HP)</span>
-                    <button class="btn-sm" style="background:#78281f; padding:2px 6px; font-size:9px;" onclick="demolishBuilding(${idx})">🗑️ Demoler</button>
+                    <div>
+                        ${extraAction}
+                        <button class="btn-sm" style="background:#78281f; padding:2px 6px; font-size:9px;" onclick="demolishBuilding(${idx})">🗑️ Demoler</button>
+                    </div>
                 </div>`;
             });
             listHtml += `</div></div>`;
 
             body.innerHTML = eraHtml + bHtml + listHtml;
+        }
+
+        // NUEVA INTERFAZ DE MERCADO (Comprar/Vender y Crear Mercaderes)
+        window.openMarketInterface = function() {
+            const modal = document.getElementById('buildingModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            modal.style.display = 'block';
+            title.innerText = "🛒 Mercado de Comercio";
+
+            let merchantsCount = state.units.filter(u => u.type === 'merchant').length;
+
+            let html = `
+                <p>Compre o venda recursos utilizando oro. También puede reclutar mercaderes para transporte autónomo entre centros urbanos.</p>
+                <div style="background:#1a1a24; padding:8px; border-radius:4px; font-size:11px; margin-bottom:10px;">
+                    <div>🪙 Oro disponible: <b>${Math.floor(state.resources.gold)}</b></div>
+                    <div>🐫 Mercaderes activos: <b>${merchantsCount}</b></div>
+                </div>
+                <div style="font-weight:bold; margin-bottom:4px;">Intercambiar Recursos:</div>
+                <div class="market-row"><span>Vender 100 Madera por 50 Oro</span> <button class="btn-sm" onclick="tradeResource('wood_to_gold')">Vender</button></div>
+                <div class="market-row"><span>Comprar 100 Madera por 80 Oro</span> <button class="btn-sm" onclick="tradeResource('gold_to_wood')">Comprar</button></div>
+                <div class="market-row"><span>Vender 100 Comida por 40 Oro</span> <button class="btn-sm" onclick="tradeResource('food_to_gold')">Vender</button></div>
+                <div class="market-row"><span>Comprar 100 Comida por 70 Oro</span> <button class="btn-sm" onclick="tradeResource('gold_to_food')">Comprar</button></div>
+                <div class="market-row"><span>Vender 50 Piedra por 60 Oro</span> <button class="btn-sm" onclick="tradeResource('stone_to_gold')">Vender</button></div>
+                <div class="market-row"><span>Comprar 50 Piedra por 100 Oro</span> <button class="btn-sm" onclick="tradeResource('gold_to_stone')">Comprar</button></div>
+                
+                <div style="margin-top:12px; font-weight:bold; margin-bottom:4px;">Unidades de Comercio:</div>
+                <button class="btn-primary" onclick="createMerchant()" style="text-align:center;">🐪 Crear Mercader (Costo: 50🪙, 50🌲)</button>
+            `;
+            body.innerHTML = html;
+        }
+
+        window.tradeResource = function(type) {
+            if (type === 'wood_to_gold') {
+                if (state.resources.wood >= 100) { state.resources.wood -= 100; state.resources.gold += 50; addDialogue("🛒 Mercado", "Has vendido 100 de madera por 50 de oro."); }
+                else alert("Madera insuficiente.");
+            } else if (type === 'gold_to_wood') {
+                if (state.resources.gold >= 80) { state.resources.gold -= 80; state.resources.wood += 100; addDialogue("🛒 Mercado", "Has comprado 100 de madera por 80 de oro."); }
+                else alert("Oro insuficiente.");
+            } else if (type === 'food_to_gold') {
+                if (state.resources.food >= 100) { state.resources.food -= 100; state.resources.gold += 40; addDialogue("🛒 Mercado", "Has vendido 100 de comida por 40 de oro."); }
+                else alert("Comida insuficiente.");
+            } else if (type === 'gold_to_food') {
+                if (state.resources.gold >= 70) { state.resources.gold -= 70; state.resources.food += 100; addDialogue("🛒 Mercado", "Has comprado 100 de comida por 70 de oro."); }
+                else alert("Oro insuficiente.");
+            } else if (type === 'stone_to_gold') {
+                if (state.resources.stone >= 50) { state.resources.stone -= 50; state.resources.gold += 60; addDialogue("🛒 Mercado", "Has vendido 50 de piedra por 60 de oro."); }
+                else alert("Piedra insuficiente.");
+            } else if (type === 'gold_to_stone') {
+                if (state.resources.gold >= 100) { state.resources.gold -= 100; state.resources.stone += 50; addDialogue("🛒 Mercado", "Has comprado 50 de piedra por 100 de oro."); }
+                else alert("Oro insuficiente.");
+            }
+            updateUI();
+            openMarketInterface();
+        }
+
+        window.createMerchant = function() {
+            let market = state.buildings.find(b => b.type === "Mercado 🛒" && b.complete);
+            if (!market) { alert("Necesitas un Mercado activo."); return; }
+            if (state.resources.gold >= 50 && state.resources.wood >= 50) {
+                state.resources.gold -= 50;
+                state.resources.wood -= 50;
+                
+                let urbanCenters = state.buildings.filter(b => b.type === "Centro urbano 🏦" && b.complete);
+                let targetB = urbanCenters.length > 0 ? urbanCenters[Math.floor(Math.random() * urbanCenters.length)] : market;
+
+                state.units.push({
+                    id: Date.now(),
+                    type: 'merchant',
+                    x: market.x,
+                    y: market.y,
+                    targetX: targetB.x,
+                    targetY: targetB.y,
+                    hp: 80,
+                    goldCarried: 50,
+                    speakTimer: 3,
+                    speech: "¡Transportando mercancías!"
+                });
+                addDialogue("🐪 Mercado", "¡Mercader creado con éxito! Iniciando ruta comercial.");
+                openMarketInterface();
+            } else {
+                alert("Recursos insuficientes (Requiere 50🪙 y 50🌲).");
+            }
         }
 
         window.openResourcesModal = function() {
@@ -755,7 +836,7 @@
                                 addDialogue("🌲 Talar Árbol", "Tala completada. Recolectadas +100 madera.");
                             }
 
-                            state.nature.resources.splice(resIndex, 1); // Recurso completo desaparece y se renovará en el ciclo de 5 años
+                            state.nature.resources.splice(resIndex, 1);
                             updateUI();
                             return;
                         }
@@ -797,6 +878,27 @@
                     if(b.type === '🌽 Granja') state.resources.food += 1.5 * mod;
                     if(b.type.includes('Mina')) { state.resources.stone += 0.8 * mod; state.resources.gold += 0.3 * mod; }
                     if(b.type === '🪚 Aserradero') state.resources.wood += 1.5 * mod;
+                    if(b.type === 'Mercado 🛒') state.resources.gold += 0.5 * mod; // Renta pasiva del mercado
+                }
+            });
+
+            // LÓGICA DE MERCADERES (Viajan entre centros urbanos aliados)
+            let urbanCenters = state.buildings.filter(b => b.type === "Centro urbano 🏦" && b.complete);
+            state.units.forEach(u => {
+                if (u.type === 'merchant') {
+                    if (u.x < u.targetX) u.x++; else if (u.x > u.targetX) u.x--;
+                    if (u.y < u.targetY) u.y++; else if (u.y > u.targetY) u.y--;
+
+                    // Si llega al destino, entrega oro/mercancía y busca otro centro urbano aliado
+                    if (u.x === u.targetX && u.y === u.targetY) {
+                        state.resources.gold += 10;
+                        addDialogue("🐪 Ruta Comercial", "Mercader entregó mercancía en Centro Urbano aliado. +10🪙 de ganancia.");
+                        if (urbanCenters.length > 0) {
+                            let nextCenter = urbanCenters[Math.floor(Math.random() * urbanCenters.length)];
+                            u.targetX = nextCenter.x;
+                            u.targetY = nextCenter.y;
+                        }
+                    }
                 }
             });
 
@@ -821,6 +923,8 @@
             if (state.barbarians.length < (3 + state.eraIndex * 2) && Math.random() < swarmChance) {
                 state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 150 + (state.eraIndex*60) });
             }
+            
+            // Los bárbaros atacan al Rey y también a los mercaderes vulnerables
             state.barbarians.forEach(b => {
                 if(b.x < rey.x) b.x++; else if(b.x > rey.x) b.x--;
                 if(b.y < rey.y) b.y++; else if(b.y > rey.y) b.y--;
@@ -829,6 +933,14 @@
                 if(Math.abs(rey.x - b.x) <= 1 && Math.abs(rey.y - b.y) <= 1 && !rey.inRefuge) {
                     rey.hp -= damage;
                 }
+
+                // Vulnerabilidad de mercaderes ante bárbaros
+                state.units.forEach(u => {
+                    if (u.type === 'merchant' && Math.abs(u.x - b.x) <= 1 && Math.abs(u.y - b.y) <= 1) {
+                        u.hp -= 50;
+                        addDialogue("⚠️ Ataque Bárbaro", "¡Un mercader ha sido interceptado por bárbaros!");
+                    }
+                });
             });
 
             state.barbarians = state.barbarians.filter(b => b.hp > 0);
@@ -878,7 +990,7 @@
                 state.buildings.forEach(b => {
                     let bx = b.x * CELL_SIZE, by = b.y * CELL_SIZE;
                     let size = (b.type.includes('Castillo') || b.type.includes('Torre') || b.type.includes('maravilla')) ? CELL_SIZE * 1.5 : CELL_SIZE;
-                    ctx.fillStyle = b.complete ? (b.type.includes('Castillo')?'#6c5ce7':'#27ae60') : '#555';
+                    ctx.fillStyle = b.complete ? (b.type.includes('Castillo')?'#6c5ce7':(b.type.includes('Mercado')?'#d35400':'#27ae60')) : '#555';
                     ctx.fillRect(bx + 2, by + 2, size - 4, size - 4);
 
                     ctx.fillStyle = "red"; ctx.fillRect(bx + 4, by - 6, size - 8, 4);
@@ -897,6 +1009,8 @@
                             ctx.fillStyle = "red"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, CELL_SIZE-8, 4);
                             ctx.fillStyle = "#0f0"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, (CELL_SIZE-8)*(u.hp/500), 4);
                         }
+                    } else if(u.type === 'merchant') {
+                        ctx.fillText('🐪', ux, uy); // Renderizado de mercader
                     } else {
                         let roleIcon = u.role === 'cazador' ? '🏹' : (u.role === 'pescador' ? '🎣' : (u.role === 'agricultor' ? '👩🏼‍🌾' : (u.role==='leñador'?'🪓':(u.role==='minero'?'⚒️':'👷'))));
                         ctx.fillText(roleIcon, ux, uy);
