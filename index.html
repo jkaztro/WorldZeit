@@ -352,7 +352,7 @@
         const CHUNK_SIZE = 10;
         
         const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d", { alpha: false }); // Optimize rendering
+        const ctx = canvas.getContext("2d", { alpha: false }); 
         
         const weatherCanvas = document.getElementById("weatherCanvas");
         const weatherCtx = weatherCanvas.getContext("2d");
@@ -369,7 +369,7 @@
         let lastTimestamp = 0;
         let globalTick = 0;
 
-        // TERRAIN COLORS (Expanded)
+        // TERRAIN COLORS 
         const COLORS = { 
             0: "#2d4c2d", // Pasto
             1: "#1a331a", // Bosque
@@ -383,7 +383,7 @@
             9: "#4a235a"  // Tierra corrupta
         };
 
-        // ERAS (Expanded)
+        // ERAS
         const ERAS = [
             { name: "Edad de Piedra", req: { g: 0, w: 0, f: 0, s: 0, i: 0 } },
             { name: "Edad de Cobre", req: { g: 150, w: 300, f: 300, s: 0, i: 0 } },
@@ -399,13 +399,11 @@
             { name: "Era Espacial", req: { g: 1000000, w: 500000, f: 800000, s: 300000, i: 600000 } }
         ];
 
-        // BUILDINGS (Massively Expanded)
+        // BUILDINGS 
         const BLDG_DATA = {
-            // Era 0
             "Hoguera 🔥": { era: 0, category: 'civic', w: 20, s: 10, i: 0, hp: 100, pop: 2, icon: '🔥', desc: "Proporciona luz y pequeña zona segura." },
             "Choza ⛺": { era: 0, category: 'civic', w: 40, s: 0, i: 0, hp: 150, pop: 4, icon: '⛺', desc: "Aumenta límite de población." },
             "Palizada 🪵": { era: 0, category: 'defense', w: 15, s: 0, i: 0, hp: 300, pop: 0, icon: '🪵', desc: "Defensa básica de madera." },
-            // Era 1
             "Centro urbano 🏦": { era: 1, category: 'civic', w: 200, s: 150, i: 0, hp: 1200, pop: 10, icon: '🏦', desc: "Núcleo del imperio. Genera aldeanos." },
             "Casa de Madera 🛖": { era: 1, category: 'civic', w: 60, s: 10, i: 0, hp: 250, pop: 6, icon: '🛖', desc: "Vivienda estándar." },
             "Granja 🌽": { era: 1, category: 'economy', w: 50, s: 10, i: 0, hp: 200, pop: 0, icon: '🌽', desc: "Genera comida constante." },
@@ -413,20 +411,16 @@
             "Campamento Minero ⛏️": { era: 1, category: 'economy', w: 80, s: 30, i: 0, hp: 300, pop: 0, icon: '⛏️', desc: "Base para recolectar piedra y oro." },
             "Muelle ⚓": { era: 1, category: 'economy', w: 100, s: 20, i: 0, hp: 400, pop: 0, icon: '⚓', desc: "Permite pesca y barcos." },
             "Cuartel Básico ⛺": { era: 1, category: 'military', w: 150, s: 50, i: 0, hp: 600, pop: 0, icon: '⛺', desc: "Entrena milicia." },
-            // Era 2
             "Mercado 🛒": { era: 2, category: 'economy', w: 150, s: 100, i: 0, hp: 600, pop: 0, icon: '🛒', desc: "Intercambio de recursos." },
             "Herrería ⚒️": { era: 2, category: 'military', w: 100, s: 150, i: 0, hp: 700, pop: 0, icon: '⚒️', desc: "Mejora armaduras y armas." },
             "Torre de Guardia 🗼": { era: 2, category: 'defense', w: 50, s: 120, i: 0, hp: 800, pop: 0, icon: '🗼', desc: "Defensa activa. Dispara flechas." },
             "Muralla de Piedra 🧱": { era: 2, category: 'defense', w: 10, s: 40, i: 0, hp: 1000, pop: 0, icon: '🧱', desc: "Defensa resistente." },
-            // Era 3
             "Mina de Hierro Profunda ⚙️": { era: 3, category: 'economy', w: 200, s: 200, i: 0, hp: 800, pop: 0, icon: '⚙️', desc: "Extrae hierro industrial." },
             "Establo 🐎": { era: 3, category: 'military', w: 250, s: 100, i: 0, hp: 900, pop: 0, icon: '🐎', desc: "Entrena caballería." },
             "Templo 🏛️": { era: 3, category: 'civic', w: 300, s: 400, i: 0, hp: 1200, pop: 0, icon: '🏛️', desc: "Cura unidades y sube moral." },
-            // Era 4
             "Castillo 🏰": { era: 4, category: 'defense', w: 600, s: 1200, i: 200, hp: 3500, pop: 20, icon: '🏰', desc: "Fortaleza suprema. Protege al rey." },
             "Universidad 🏫": { era: 4, category: 'civic', w: 400, s: 300, i: 100, hp: 1500, pop: 0, icon: '🏫', desc: "Investigaciones avanzadas." },
             "Taller de Asedio 🪵": { era: 4, category: 'military', w: 400, s: 200, i: 300, hp: 1200, pop: 0, icon: '🪵', desc: "Crea catapultas y trabuquetes." },
-            // Era 5+
             "Bóveda del Banco 🏦": { era: 5, category: 'economy', w: 500, s: 800, i: 400, hp: 2000, pop: 0, icon: '🏦', desc: "Genera oro pasivamente." },
             "Maravilla del Mundo 🏆": { era: 6, category: 'civic', w: 5000, s: 5000, i: 2000, hp: 10000, pop: 100, icon: '🏆', desc: "Victoria inminente." },
             "Fábrica Industrial 🏭": { era: 8, category: 'economy', w: 2000, s: 3000, i: 5000, hp: 4000, pop: 0, icon: '🏭', desc: "Multiplica producción global x3." }
@@ -444,8 +438,7 @@
             "Imprenta": { era: 5, cost: { w: 800, g: 600 }, researched: false, desc: "Reduce costo de tecnologías un 20%." }
         };
 
-        // LEGENDARY PETS (Personalized Context Integration)
-        // Integración sigilosa de datos del usuario sin revelar fuente ni romper inmersión
+        // LEGENDARY PETS 
         const LEGENDARY_PETS = {
             "Till": { 
                 id: "pet_till", name: "Till (Líder Blanco)", icon: "🐈", type: "dominant", cost: 500, 
@@ -458,6 +451,10 @@
             "Sheera": { 
                 id: "pet_sheera", name: "Sheera (La Cazadora)", icon: "🐆", type: "huntress", cost: 500, 
                 desc: "Ágil cazadora. Aumenta la recolección de comida y pieles un +40%.", active: false, x:0, y:0 
+            },
+            "Thor": { 
+                id: "pet_thor", name: "Thor (Guardián Legendario)", icon: "🐺", type: "guardian", cost: 800, 
+                desc: "Lobo legendario. Aumenta drásticamente la durabilidad del Castillo, Maravilla y del Rey.", active: false, x:0, y:0 
             }
         };
 
@@ -470,7 +467,7 @@
                 resources: { gold: 100, wood: 200, food: 200, stone: 0, iron: 0, skin: 0 },
                 pop: { current: 0, max: 10 },
                 terrain: Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0)),
-                fog: Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0)), // 0: unrevealed, 1: fog of war, 2: visible
+                fog: Array(MAP_SIZE).fill().map(() => Array(MAP_SIZE).fill(0)), 
                 nature: { resources: [] }, 
                 buildings: [], 
                 units: [], 
@@ -480,8 +477,8 @@
                 enemyCenters: [],
                 messages: "La historia aguarda.",
                 weather: { type: 'clear', intensity: 0, timer: 0 },
-                time: { hour: 8, cycle: 'day', ticks: 0 }, // 0-24 cycle
-                diplomacy: { relations: 50 }, // 0: War, 100: Ally
+                time: { hour: 8, cycle: 'day', ticks: 0 }, 
+                diplomacy: { relations: 50 }, 
                 militaryMode: 'defensa'
             };
         }
@@ -507,13 +504,12 @@
                 grid.push(row);
             }
 
-            // Ensure start and end are considered inside grid bounds
             if (startX<0 || startY<0 || startX>=MAP_SIZE || startY>=MAP_SIZE || 
                 targetX<0 || targetY<0 || targetX>=MAP_SIZE || targetY>=MAP_SIZE) return [];
 
             let startNode = grid[startY][startX];
             let targetNode = grid[targetY][targetX];
-            targetNode.walkable = true; // allow walking to target even if blocked (e.g., attacking a building)
+            targetNode.walkable = true; 
 
             let openSet = [startNode];
             let closedSet = new Set();
@@ -537,14 +533,12 @@
                     return path.reverse();
                 }
 
-                // Neighbors
                 let neighbors = [];
                 for(let dy=-1; dy<=1; dy++) {
                     for(let dx=-1; dx<=1; dx++) {
                         if(dx===0 && dy===0) continue;
                         let nx = current.x + dx, ny = current.y + dy;
                         if(nx>=0 && nx<MAP_SIZE && ny>=0 && ny<MAP_SIZE) {
-                            // Prevent diagonal corner cutting through walls
                             if(dx !== 0 && dy !== 0) {
                                 if(!grid[current.y][nx].walkable || !grid[ny][current.x].walkable) continue;
                             }
@@ -556,11 +550,10 @@
                 for (let neighbor of neighbors) {
                     if (!neighbor.walkable || closedSet.has(`${neighbor.x},${neighbor.y}`)) continue;
                     
-                    // Cost math
                     let moveCost = (neighbor.x !== current.x && neighbor.y !== current.y) ? 14 : 10;
-                    if(state.terrain[neighbor.y][neighbor.x] === 2) moveCost += 5; // slow on sand
-                    if(state.terrain[neighbor.y][neighbor.x] === 1) moveCost += 3; // slow in forest
-                    if(state.terrain[neighbor.y][neighbor.x] === 6) moveCost -= 2; // fast on roads
+                    if(state.terrain[neighbor.y][neighbor.x] === 2) moveCost += 5; 
+                    if(state.terrain[neighbor.y][neighbor.x] === 1) moveCost += 3; 
+                    if(state.terrain[neighbor.y][neighbor.x] === 6) moveCost -= 2; 
 
                     let newCostToNeighbor = current.gCost + moveCost;
                     
@@ -572,7 +565,7 @@
                     }
                 }
             }
-            return []; // No path
+            return [];
         }
 
         // ================= INITIALIZATION & SETUP =================
@@ -586,13 +579,12 @@
             mapTypeSelected = type;
             state = getEmptyState();
             
-            // Starting resources based on biome
             if (type === 'selva') state.resources = { wood: 1000, food: 800, stone: 100, gold: 100, iron:0, skin: 0 };
             else if (type === 'bosque') state.resources = { wood: 800, food: 500, stone: 300, gold: 400, iron:0, skin: 0 };
             else if (type === 'desierto') state.resources = { gold: 1000, food: 500, stone: 300, wood: 200, iron:0, skin: 0 };
             else if (type === 'islas') state.resources = { food: 800, wood: 600, gold: 400, stone: 200, iron:0, skin: 0 };
             else if (type === 'tundra') state.resources = { gold: 1200, stone: 400, food: 200, wood: 200, iron:0, skin: 0 };
-            else state.resources = { gold: 500, wood: 500, food: 500, stone: 500, iron: 100, skin: 0 }; // custom
+            else state.resources = { gold: 500, wood: 500, food: 500, stone: 500, iron: 100, skin: 0 };
 
             generateBiomeTerrain(type);
             spawnInitialSetup();
@@ -603,7 +595,7 @@
             document.getElementById('startupMenu').style.display = 'none';
             document.getElementById('editorPanel').style.display = 'flex';
             document.getElementById('gameArea').style.display = 'flex';
-            document.getElementById('minimapContainer').style.display = 'none'; // hide minimap in editor
+            document.getElementById('minimapContainer').style.display = 'none';
             gameState = 'editor';
             state = getEmptyState();
             for (let y = 0; y < MAP_SIZE; y++) for (let x = 0; x < MAP_SIZE; x++) state.terrain[y][x] = 0;
@@ -629,19 +621,19 @@
         });
 
         function generateBiomeTerrain(type) {
-            let simplex = new SimplexNoise(); // Simplified placeholder for procedural generation logic
+            let simplex = new SimplexNoise(); 
             for (let y = 0; y < MAP_SIZE; y++) {
                 for (let x = 0; x < MAP_SIZE; x++) {
-                    let noiseVal = Math.sin(x/5) * Math.cos(y/5) + Math.random()*0.5; // Pseudo-noise
+                    let noiseVal = Math.sin(x/5) * Math.cos(y/5) + Math.random()*0.5; 
                     let t = 0;
                     
                     if (type === 'selva') {
                         t = noiseVal > 0.2 ? 1 : 0; 
-                        if (x > MAP_SIZE/2 - 4 && x < MAP_SIZE/2 + 4) t = (noiseVal > 0) ? 3 : 7; // River
+                        if (x > MAP_SIZE/2 - 4 && x < MAP_SIZE/2 + 4) t = (noiseVal > 0) ? 3 : 7; 
                     } else if (type === 'bosque') {
                         t = noiseVal > 0.4 ? 8 : (noiseVal > -0.2 ? 1 : 0); 
                     } else if (type === 'desierto') {
-                        t = noiseVal > 0 ? 2 : (noiseVal < -0.8 ? 7 : 0); // Oases
+                        t = noiseVal > 0 ? 2 : (noiseVal < -0.8 ? 7 : 0); 
                         if (y > MAP_SIZE - 15) t = 3; 
                     } else if (type === 'islas') {
                         t = 3; 
@@ -658,14 +650,12 @@
             respawnNature(false, true);
         }
 
-        // Very basic noise shim
         function SimplexNoise() {}
 
         function spawnInitialSetup() {
             let startX = Math.floor(MAP_SIZE/2);
             let startY = Math.floor(MAP_SIZE/2);
 
-            // Clear landing zone
             for(let dy=-3; dy<=3; dy++) {
                 for(let dx=-3; dx<=3; dx++) {
                     let nx=startX+dx, ny=startY+dy;
@@ -680,7 +670,6 @@
                 { id: generateId(), type: "Centro urbano 🏦", x: startX, y: startY, hp: 1200, maxHp: 1200, complete: true }
             );
             
-            // Adjust pop max
             updatePopulationCap();
 
             state.units.push(
@@ -690,7 +679,6 @@
                 { id: generateId(), type: "civil", role: "minero", x: startX, y: startY-1, hp: 100, maxHp: 100, action: 'idle', path: [], carry: 0 }
             );
 
-            // Camera follow king
             camera.x = - (startX * CELL_SIZE) + window.innerWidth/2;
             camera.y = - (startY * CELL_SIZE) + window.innerHeight/2;
         }
@@ -705,19 +693,16 @@
                     let r = Math.random();
                     
                     if (r < abundance) {
-                        // Trees
                         if ((t === 1 || t === 0) && r < (abundance*0.5)) {
                             let isFrutal = Math.random() < 0.2;
                             state.nature.resources.push({ id: generateId(), x, y, type: isFrutal ? 'frutal' : 'arbol', icon: isFrutal ? '🍎' : '🌲', amount: 500 });
                         }
-                        // Stone/Gold/Iron
                         if (t === 8 && r < (abundance*0.2)) {
                             let minType = Math.random();
                             let type = minType < 0.5 ? 'piedra' : (minType < 0.8 ? 'oro' : 'hierro');
                             let icon = type === 'piedra' ? '🪨' : (type === 'oro' ? '🪙' : '⚙️');
                             state.nature.resources.push({ id: generateId(), x, y, type: type, icon: icon, amount: 1000 });
                         }
-                        // Animals
                         if(t !== 3 && t !== 7 && r < (abundance*0.05)) {
                             let isHostile = Math.random() < 0.4;
                             state.wildAnimals.push({ 
@@ -728,7 +713,6 @@
                                 action: 'idle', path: []
                             });
                         }
-                        // Fish
                         if((t === 3 || t === 7) && r < (abundance*0.1)) {
                             state.wildAnimals.push({ id: generateId(), x, y, icon: '🐟', type: 'fish', hp: 20, action: 'idle', path: [] });
                         }
@@ -744,10 +728,9 @@
             updateVision(); updateUI();
             addDialogue("SISTEMA", "Secuencia de inicio completada. Protege a tu Rey y avanza a través de las Eras.");
             
-            // Main Game Loop
             if(!window.logicInterval) {
-                window.logicInterval = setInterval(gameLogicTick, 200); // 5 TPS
-                window.slowInterval = setInterval(slowLogicTick, 2000); // UI updates, weather, economy checks
+                window.logicInterval = setInterval(gameLogicTick, 200);
+                window.slowInterval = setInterval(slowLogicTick, 2000);
                 requestAnimationFrame(renderLoop);
             }
         }
@@ -773,13 +756,11 @@
             let rey = state.units.find(u => u.type === 'rey');
             if (!rey) { collapseCivilization(); return; }
 
-            // Projectiles logic
             for (let i = state.projectiles.length - 1; i >= 0; i--) {
                 let p = state.projectiles[i];
                 let dx = p.targetX - p.x; let dy = p.targetY - p.y;
                 let dist = Math.hypot(dx, dy);
                 if (dist < 0.5) {
-                    // Hit
                     if(p.targetUnit && p.targetUnit.hp > 0) p.targetUnit.hp -= p.damage;
                     state.projectiles.splice(i, 1);
                 } else {
@@ -788,11 +769,9 @@
                 }
             }
 
-            // Unit AI & Pathfollowing
             state.units.forEach(u => {
                 if(u.hp <= 0) return;
 
-                // Move along path
                 if (u.path && u.path.length > 0) {
                     let nextStep = u.path[0];
                     let dx = nextStep.x - u.x; let dy = nextStep.y - u.y;
@@ -808,16 +787,13 @@
                         u.y += Math.sign(dy) * Math.min(Math.abs(dy), speed);
                     }
                 } else {
-                    // AI Decisions when idle
                     if (globalTick % 5 === 0) performUnitAI(u);
                 }
             });
 
-            // Defensive Buildings Fire
             if (globalTick % 10 === 0) {
                 state.buildings.forEach(b => {
                     if ((b.type.includes('Torre') || b.type.includes('Castillo')) && b.complete) {
-                        // Find target
                         let target = state.barbarians.find(barb => Math.hypot(barb.x - b.x, barb.y - b.y) <= 8);
                         if(target) {
                             state.projectiles.push({ x: b.x+0.5, y: b.y+0.5, targetX: target.x, targetY: target.y, targetUnit: target, speed: 0.8, damage: 20 });
@@ -826,7 +802,6 @@
                 });
             }
 
-            // Barbarian AI
             state.barbarians.forEach(b => {
                 if (globalTick % 5 === 0) {
                     if (Math.random() < 0.2 || !b.path || b.path.length === 0) {
@@ -841,7 +816,6 @@
                     else { b.x += Math.sign(dx)*0.15; b.y += Math.sign(dy)*0.15; }
                 }
 
-                // Attack logic
                 if (Math.hypot(rey.x - b.x, rey.y - b.y) <= 1.5 && !rey.inRefuge && globalTick % 10 === 0) {
                     rey.hp -= 15 + (state.eraIndex * 5);
                 }
@@ -852,7 +826,6 @@
                 });
             });
 
-            // Cleanup dead
             state.barbarians = state.barbarians.filter(b => b.hp > 0);
             state.units = state.units.filter(u => u.hp > 0);
             state.buildings = state.buildings.filter(b => b.hp > 0);
@@ -877,8 +850,7 @@
                     }
                 }
                 else if (['leñador', 'minero', 'agricultor'].includes(u.role)) {
-                    // Gather logic (simplified for code length: teleports resources to pool for now, pathing is visual)
-                    let targetType = u.role === 'leñador' ? 'arbol' : (u.role === 'minero' ? 'piedra' : 'frutal'); // simplified minero for all ores
+                    let targetType = u.role === 'leñador' ? 'arbol' : (u.role === 'minero' ? 'piedra' : 'frutal'); 
                     let res = state.nature.resources.find(r => r.type === targetType || (u.role==='minero' && (r.type==='oro'||r.type==='hierro')));
                     if (res) {
                         if (Math.hypot(res.x - cx, res.y - cy) <= 1.5) {
@@ -901,13 +873,12 @@
                     }
                 }
             } else if (u.type === 'soldado' || u.type === 'cavalry' || u.type === 'mercenario') {
-                // Military logic
                 let target = state.barbarians[0] || state.wildAnimals.find(w => w.type === 'hostile');
                 if (target) {
                     if (Math.hypot(target.x - cx, target.y - cy) <= 1.5) {
                         let dmg = 25;
                         if(TECHS["Fundición de Bronce"].researched) dmg += 10;
-                        if(LEGENDARY_PETS["Till"].active) dmg *= 1.25; // Bonus de Till
+                        if(LEGENDARY_PETS["Till"].active) dmg *= 1.25; 
                         target.hp -= dmg;
                     } else {
                         if(Math.random()<0.2) u.path = findPath(cx, cy, Math.round(target.x), Math.round(target.y));
@@ -919,15 +890,13 @@
         function slowLogicTick() {
             if (gameState !== 'playing') return;
             
-            // Time & Weather
             state.time.ticks++;
-            if (state.time.ticks >= 30) { // Approx 1 game hour per 30 slow ticks (60 sec)
+            if (state.time.ticks >= 30) { 
                 state.time.ticks = 0;
                 state.time.hour = (state.time.hour + 1) % 24;
                 if(state.time.hour === 0) state.year++;
                 state.time.cycle = (state.time.hour >= 6 && state.time.hour < 18) ? 'day' : 'night';
                 
-                // Weather changes
                 if(Math.random() < 0.1) {
                     let rand = Math.random();
                     if(rand < 0.5) state.weather.type = 'clear';
@@ -936,7 +905,6 @@
                 }
             }
 
-            // Passive economy
             state.buildings.forEach(b => {
                 if(!b.complete) return;
                 if(b.type === 'Granja 🌽') state.resources.food += 5;
@@ -944,7 +912,6 @@
                 if(b.type === 'Mercado 🛒') state.resources.gold += 5;
             });
 
-            // Barbarian Spawns
             if (state.year > 2 && Math.random() < 0.15 + (state.eraIndex * 0.05)) {
                 if(state.barbarians.length < 5 + state.eraIndex * 2) {
                     let edgeX = Math.random() > 0.5 ? 2 : MAP_SIZE - 3;
@@ -998,7 +965,6 @@
             let nextEra = ERAS[state.eraIndex + 1];
             let html = ``;
 
-            // ERA ADVANCEMENT
             if (nextEra) {
                 let req = nextEra.req;
                 let canAdvance = state.resources.gold >= req.g && state.resources.wood >= req.w && state.resources.food >= req.f && state.resources.stone >= req.s && state.resources.iron >= req.i;
@@ -1012,7 +978,6 @@
                 html += `<div class="era-panel"><strong style="color:var(--accent-gold); font-size:18px;">🌟 MÁXIMO DESARROLLO ALCANZADO</strong></div>`;
             }
 
-            // BUILDINGS LIST
             html += `<div style="margin-bottom:8px; font-weight:bold; color:var(--accent-green);">Catálogos de Construcción:</div>
                      <div class="list-container" style="max-height: 250px;">`;
             
@@ -1075,7 +1040,7 @@
             modal.style.display = 'flex';
             title.innerText = "🐾 Compañeros Legendarios";
 
-            let html = `<p>Invoca a felinos mitológicos para otorgar bonificaciones globales permanentes a tu imperio.</p>`;
+            let html = `<p>Invoca a felinos y lobos mitológicos para otorgar bonificaciones globales permanentes a tu imperio.</p>`;
             
             Object.keys(LEGENDARY_PETS).forEach(key => {
                 let pet = LEGENDARY_PETS[key];
@@ -1130,7 +1095,6 @@
         }
 
         window.openMilitaryModal = function() {
-            // Simplified for length, focuses on unit spawning
             const modal = document.getElementById('buildingModal');
             const title = document.getElementById('modalTitle');
             const body = document.getElementById('modalBody');
@@ -1231,7 +1195,7 @@
             let map = { 'w':'wood', 'g':'gold', 'f':'food', 's':'stone' };
             let rOut = map[resOut]; let rIn = map[resIn];
             if(state.resources[rOut] >= Math.abs(amtOut)) {
-                state.resources[rOut] += amtOut; // amtOut is negative
+                state.resources[rOut] += amtOut;
                 state.resources[rIn] += amtIn;
                 updateUI(); openMarketInterface();
             } else alert("Recursos insuficientes para intercambiar.");
@@ -1253,6 +1217,18 @@
             if(state.resources.gold >= pet.cost && !pet.active) {
                 state.resources.gold -= pet.cost;
                 pet.active = true;
+                
+                // BUFF DE THOR: Duplica HP de Rey, Castillo y Maravilla existentes
+                if (key === 'Thor') {
+                    let rey = state.units.find(u => u.type === 'rey');
+                    if (rey) { rey.maxHp *= 2; rey.hp *= 2; }
+                    state.buildings.forEach(b => {
+                        if(b.type.includes('Castillo') || b.type.includes('Maravilla')) {
+                            b.maxHp *= 2; b.hp *= 2;
+                        }
+                    });
+                }
+
                 let rey = state.units.find(u => u.type === 'rey');
                 pet.x = rey ? rey.x : MAP_SIZE/2;
                 pet.y = rey ? rey.y : MAP_SIZE/2;
@@ -1288,28 +1264,30 @@
                     if (selectedBuildingType) {
                         let data = BLDG_DATA[selectedBuildingType];
                         let t = state.terrain[mapY][mapX];
-                        if(t === 3 || t === 8) { alert("Terreno inválido."); return; } // Water/Mountain block
+                        if(t === 3 || t === 8) { alert("Terreno inválido."); return; }
 
-                        // Check collision
                         if(state.buildings.some(b => b.x === mapX && b.y === mapY)) { alert("Espacio ocupado."); return; }
 
                         if (state.resources.wood >= data.w && state.resources.stone >= data.s && state.resources.iron >= data.i) {
                             state.resources.wood -= data.w; state.resources.stone -= data.s; state.resources.iron -= data.i;
-                            state.buildings.push({ id: generateId(), type: selectedBuildingType, x: mapX, y: mapY, hp: 10, maxHp: data.hp, complete: false });
+                            
+                            // Aplica el Buff de Thor para construcciones nuevas
+                            let maxHpAssigned = data.hp;
+                            if (LEGENDARY_PETS["Thor"] && LEGENDARY_PETS["Thor"].active && (selectedBuildingType.includes('Castillo') || selectedBuildingType.includes('Maravilla'))) {
+                                maxHpAssigned *= 2;
+                            }
+
+                            state.buildings.push({ id: generateId(), type: selectedBuildingType, x: mapX, y: mapY, hp: 10, maxHp: maxHpAssigned, complete: false });
                             addDialogue("🔨 Construcción", `Planos de ${selectedBuildingType} colocados. Constructores en camino.`);
                             selectedBuildingType = null; updateUI();
                         } else alert("Recursos insuficientes.");
                     } else {
-                        // Select unit / movement command (Simplified RTS controls)
-                        // If holding shift, move selected military units to clicked spot
-                        if (e.shiftKey) {
-                            let military = state.units.filter(u => ['soldado','cavalry','mercenario','rey'].includes(u.type));
-                            military.forEach(u => {
-                                u.path = findPath(Math.round(u.x), Math.round(u.y), mapX, mapY, false);
-                            });
-                            // Spawn visual click indicator
-                            addDialogue("⚔️ Comandante", `Tropas en movimiento a [${mapX}, ${mapY}].`);
-                        }
+                        // Movimiento Libre y fluido sin rutas obligadas
+                        let movingUnits = state.units.filter(u => ['soldado','cavalry','mercenario','rey','pet'].includes(u.type));
+                        movingUnits.forEach(u => {
+                            u.path = findPath(Math.round(u.x), Math.round(u.y), mapX, mapY, false);
+                        });
+                        addDialogue("⚔️ Movilización", `Fuerzas desplazándose hacia [${mapX}, ${mapY}].`);
                     }
                 }
             }
@@ -1323,15 +1301,13 @@
                 return;
             }
             
-            // Age fog
             for(let y=0; y<MAP_SIZE; y++) for(let x=0; x<MAP_SIZE; x++) if(state.fog[y][x] === 2) state.fog[y][x] = 1;
             
-            // Vision radius
             state.units.forEach(u => {
                 let range = (u.type === 'rey' || u.type === 'pet') ? 6 : 4; 
                 for(let dy = -range; dy <= range; dy++) {
                     for(let dx = -range; dx <= range; dx++) {
-                        if (dx*dx + dy*dy <= range*range) { // Circular vision
+                        if (dx*dx + dy*dy <= range*range) {
                             let ny = Math.round(u.y) + dy, nx = Math.round(u.x) + dx;
                             if(ny >= 0 && ny < MAP_SIZE && nx >= 0 && nx < MAP_SIZE) state.fog[ny][nx] = 2;
                         }
@@ -1365,7 +1341,6 @@
                 }
             }
 
-            // Draw Entities
             state.buildings.forEach(b => {
                 if(state.fog[b.y][b.x] === 2) {
                     minimapCtx.fillStyle = b.type.includes('Centro') ? '#ffd700' : '#27ae60';
@@ -1385,7 +1360,6 @@
                 }
             });
 
-            // Viewport Box
             let vp = document.getElementById("minimapViewport");
             let vW = (window.innerWidth / (CELL_SIZE * camera.zoom)) * mapScale;
             let vH = (window.innerHeight / (CELL_SIZE * camera.zoom)) * mapScale;
@@ -1399,19 +1373,17 @@
         function renderWeather() {
             weatherCtx.clearRect(0,0, weatherCanvas.width, weatherCanvas.height);
             
-            // Day/Night filter overlay
             if (gameState === 'playing') {
                 if (state.time.cycle === 'night') {
                     weatherCtx.fillStyle = `rgba(0, 5, 20, 0.6)`;
                     weatherCtx.fillRect(0,0,weatherCanvas.width, weatherCanvas.height);
                     
-                    // Simple light source logic around buildings/king (Hole punch logic using globalCompositeOperation)
                     weatherCtx.globalCompositeOperation = 'destination-out';
                     
                     let drawLight = (mapX, mapY, radius) => {
                         let scX = (mapX * CELL_SIZE * camera.zoom) + camera.x;
                         let scY = (mapY * CELL_SIZE * camera.zoom) + camera.y;
-                        if(scX < -200 || scX > window.innerWidth+200 || scY < -200 || scY > window.innerHeight+200) return; // Culling
+                        if(scX < -200 || scX > window.innerWidth+200 || scY < -200 || scY > window.innerHeight+200) return; 
                         
                         let grad = weatherCtx.createRadialGradient(scX, scY, 0, scX, scY, radius * camera.zoom);
                         grad.addColorStop(0, 'rgba(255,255,255,1)');
@@ -1433,7 +1405,6 @@
                 }
             }
 
-            // Weather Particles
             if(state.weather.type === 'rain') {
                 weatherCtx.strokeStyle = 'rgba(150, 200, 255, 0.4)';
                 weatherCtx.lineWidth = 1;
@@ -1458,7 +1429,6 @@
         }
 
         function renderLoop() {
-            // Resize canvas to fill screen dynamically
             if(canvas.width !== window.innerWidth) {
                 canvas.width = window.innerWidth; canvas.height = window.innerHeight;
                 weatherCanvas.width = window.innerWidth; weatherCanvas.height = window.innerHeight;
@@ -1471,25 +1441,19 @@
             ctx.translate(camera.x, camera.y); 
             ctx.scale(camera.zoom, camera.zoom);
 
-            // Culling bounds
             let viewMinX = -camera.x / camera.zoom / CELL_SIZE - 2;
             let viewMaxX = (canvas.width - camera.x) / camera.zoom / CELL_SIZE + 2;
             let viewMinY = -camera.y / camera.zoom / CELL_SIZE - 2;
             let viewMaxY = (canvas.height - camera.y) / camera.zoom / CELL_SIZE + 2;
 
-            // DRAW TERRAIN
             for (let y = Math.max(0, Math.floor(viewMinY)); y < Math.min(MAP_SIZE, Math.ceil(viewMaxY)); y++) {
                 for (let x = Math.max(0, Math.floor(viewMinX)); x < Math.min(MAP_SIZE, Math.ceil(viewMaxX)); x++) {
-                    if (gameState === 'playing' && state.fog[y][x] === 0) continue; // Skip unrevealed
+                    if (gameState === 'playing' && state.fog[y][x] === 0) continue; 
 
                     ctx.fillStyle = COLORS[state.terrain[y][x]] || "#000"; 
-                    
-                    // Simple texturing/noise
-                    if(state.terrain[y][x] === 3) ctx.fillStyle = `hsl(204, 64%, ${35 + Math.sin(Date.now()/500 + x)*5}%)`; // Animated water
+                    if(state.terrain[y][x] === 3) ctx.fillStyle = `hsl(204, 64%, ${35 + Math.sin(Date.now()/500 + x)*5}%)`; 
 
                     ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
-                    
-                    // Grid lines (faint)
                     ctx.strokeStyle = "rgba(255,255,255,0.03)"; 
                     ctx.strokeRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE, CELL_SIZE);
                 }
@@ -1498,7 +1462,6 @@
             if (gameState === 'playing') {
                 ctx.font = "24px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
                 
-                // Draw Nature
                 state.nature.resources.forEach(res => { 
                     if(res.x >= viewMinX && res.x <= viewMaxX && res.y >= viewMinY && res.y <= viewMaxY) {
                         if(state.fog[res.y][res.x] > 0) {
@@ -1507,26 +1470,22 @@
                     }
                 });
 
-                // Draw Buildings
                 state.buildings.forEach(b => {
                     if(b.x >= viewMinX && b.x <= viewMaxX && b.y >= viewMinY && b.y <= viewMaxY) {
                         if(state.fog[b.y][b.x] > 0) {
                             let bx = b.x * CELL_SIZE, by = b.y * CELL_SIZE;
                             let size = (b.type.includes('Castillo') || b.type.includes('maravilla')) ? CELL_SIZE * 2 : CELL_SIZE;
                             
-                            // Foundation if incomplete
                             if(!b.complete) {
                                 ctx.fillStyle = 'rgba(139, 69, 19, 0.5)';
                                 ctx.fillRect(bx+4, by+4, size-8, size-8);
                                 ctx.font = "12px Arial"; ctx.fillStyle="#fff";
                                 ctx.fillText(`${Math.floor((b.hp/b.maxHp)*100)}%`, bx+size/2, by+size/2);
                             } else {
-                                // Extract icon from name string (usually the last char)
                                 let icon = b.type.slice(-2);
                                 ctx.font = `${size*0.7}px Arial`;
                                 ctx.fillText(icon, bx + size/2, by + size/2);
                                 
-                                // HP Bar if damaged
                                 if (b.hp < b.maxHp) {
                                     ctx.fillStyle = "red"; ctx.fillRect(bx + 4, by - 6, size - 8, 4);
                                     ctx.fillStyle = "#0f0"; ctx.fillRect(bx + 4, by - 6, (size - 8) * (b.hp / b.maxHp), 4);
@@ -1537,7 +1496,6 @@
                 });
 
                 ctx.font = "20px Arial";
-                // Draw Animals & Units
                 [...state.wildAnimals, ...state.units, ...state.barbarians].forEach(ent => {
                     let rx = Math.round(ent.x); let ry = Math.round(ent.y);
                     if(rx >= viewMinX && rx <= viewMaxX && ry >= viewMinY && ry <= viewMaxY) {
@@ -1546,7 +1504,7 @@
                             let char = '👷';
                             
                             if (ent.type === 'rey') char = '👑';
-                            else if (ent.icon) char = ent.icon; // Pets, animals, barbarians
+                            else if (ent.icon) char = ent.icon; 
                             else if (ent.type === 'soldado') char = '🪖';
                             else if (ent.type === 'cavalry') char = '🐎';
                             else if (ent.type === 'mercenario') char = '🥷🏼';
@@ -1554,15 +1512,13 @@
                             else if (ent.role === 'minero') char = '⛏️';
                             else if (ent.role === 'agricultor') char = '👩🏼‍🌾';
                             else if (ent.role === 'constructor') char = '🔨';
-                            else if (ent.hp) char = '👹'; // Fallback for barbarians if no icon
+                            else if (ent.hp) char = '👹'; 
 
-                            // Shadow
                             ctx.fillStyle = "rgba(0,0,0,0.3)";
                             ctx.beginPath(); ctx.ellipse(ex, ey+10, 10, 5, 0, 0, Math.PI*2); ctx.fill();
                             
                             ctx.fillText(char, ex, ey);
 
-                            // HP Bar
                             if (ent.hp < ent.maxHp && ent.maxHp) {
                                 ctx.fillStyle = "red"; ctx.fillRect(ent.x*CELL_SIZE+4, ent.y*CELL_SIZE-6, CELL_SIZE-8, 4);
                                 ctx.fillStyle = "#0f0"; ctx.fillRect(ent.x*CELL_SIZE+4, ent.y*CELL_SIZE-6, (CELL_SIZE-8)*(ent.hp/ent.maxHp), 4);
@@ -1571,7 +1527,6 @@
                     }
                 });
 
-                // Projectiles
                 state.projectiles.forEach(p => {
                     ctx.fillStyle = "#f39c12";
                     ctx.beginPath();
@@ -1579,7 +1534,6 @@
                     ctx.fill();
                 });
 
-                // Fog of War Overlay
                 for (let y = Math.max(0, Math.floor(viewMinY)); y < Math.min(MAP_SIZE, Math.ceil(viewMaxY)); y++) {
                     for (let x = Math.max(0, Math.floor(viewMinX)); x < Math.min(MAP_SIZE, Math.ceil(viewMaxX)); x++) {
                         if(state.fog[y][x] === 0) { ctx.fillStyle = "rgba(7, 7, 10, 1)"; ctx.fillRect(x*CELL_SIZE, y*CELL_SIZE, CELL_SIZE+1, CELL_SIZE+1); }
@@ -1587,11 +1541,8 @@
                     }
                 }
                 
-                // Render Build Blueprint
                 if (selectedBuildingType) {
-                    const rect = canvas.getBoundingClientRect();
-                    // We need active mouse position for this. 
-                    // To keep code compact without extra global vars, skipping visual blueprint attached to mouse, relying on click.
+                    // Blueprint tracking logic omitted for brevity in free construction.
                 }
             }
             
@@ -1608,11 +1559,10 @@
         // ================= END/DEATH STATE =================
         function collapseCivilization() {
             gameState = 'menu';
-            document.getElementById('weatherIndicator').style.display = 'none'; // hide top HUD
+            document.getElementById('weatherIndicator').style.display = 'none'; 
             clearInterval(window.logicInterval); clearInterval(window.slowInterval);
             window.logicInterval = null; window.slowInterval = null;
             
-            // Dramatic red overlay
             weatherCtx.fillStyle = 'rgba(200, 0, 0, 0.5)';
             weatherCtx.fillRect(0,0,weatherCanvas.width, weatherCanvas.height);
 
@@ -1624,7 +1574,6 @@
 
         // ================= CONTROLS & LISTENERS =================
 
-        // Map setup buttons
         document.getElementById('btnSelva').addEventListener('click', () => startGame('selva'));
         document.getElementById('btnBosque').addEventListener('click', () => startGame('bosque'));
         document.getElementById('btnDesierto').addEventListener('click', () => startGame('desierto'));
@@ -1632,14 +1581,12 @@
         document.getElementById('btnTundra').addEventListener('click', () => startGame('tundra'));
         document.getElementById('btnEditor').addEventListener('click', startMapEditor);
         
-        // Zoom
         document.getElementById('btnZoomIn').addEventListener('click', () => camera.zoom = Math.min(camera.zoom + 0.3, 3.0));
         document.getElementById('btnZoomOut').addEventListener('click', () => camera.zoom = Math.max(camera.zoom - 0.3, 0.5));
 
-        // Pan Map
         const container = document.getElementById("canvasContainer");
         container.addEventListener("mousedown", e => { 
-            if(e.button === 0) { // Left click 
+            if(e.button === 0) {  
                 isDragging = true; 
                 startX = e.clientX - camera.x; 
                 startY = e.clientY - camera.y; 
@@ -1654,7 +1601,6 @@
         });
         window.addEventListener("mouseup", () => { isDragging = false; container.style.cursor = "crosshair"; });
 
-        // SOS Advice
         window.openSOSModal = function() {
             const modal = document.getElementById('buildingModal');
             const title = document.getElementById('modalTitle');
@@ -1671,28 +1617,11 @@
             
             if(state.eraIndex < ERAS.length - 1) {
                 let nextReq = ERAS[state.eraIndex + 1].req;
-                advice += `<li>📈 <b>Progreso Tecnológico:</b> Para la próxima era (${ERAS[state.eraIndex + 1].name}) requieres:<br> ${nextReq.g}🪙, ${nextReq.w}🌲, ${nextReq.f}🍖, ${nextReq.s}🪨, ${nextReq.i}⚙️.</li>`;
-            } else {
-                advice += "<li>🌟 <b>Cénit:</b> Has alcanzado el pináculo de la evolución humana.</li>";
+                advice += `<li>💡 <b>Avance Tecnológico:</b> Para la siguiente era requieres: ${nextReq.g}🪙, ${nextReq.w}🌲, ${nextReq.f}🍖, ${nextReq.s}🪨, ${nextReq.i}⚙️.</li>`;
             }
             advice += "</ul>";
             body.innerHTML = advice;
         }
-
-        // Minimap click to pan
-        minimapCanvas.addEventListener('mousedown', (e) => {
-            const rect = minimapCanvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
-            let mapScale = minimapCanvas.width / MAP_SIZE;
-            
-            let targetMapX = clickX / mapScale;
-            let targetMapY = clickY / mapScale;
-
-            camera.x = - (targetMapX * CELL_SIZE * camera.zoom) + window.innerWidth/2;
-            camera.y = - (targetMapY * CELL_SIZE * camera.zoom) + window.innerHeight/2;
-        });
-
     </script>
 </body>
 </html>
