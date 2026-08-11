@@ -82,9 +82,15 @@
             background: rgba(17, 17, 21, 0.92); border: 1px solid var(--accent-gold); color: #fff;
             width: 45px; height: 45px; border-radius: 50%; font-size: 20px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.6);
-            transition: transform 0.2s, background 0.2s;
+            /* Transparencia permanente añadida */
+            opacity: 0.4;
+            transition: transform 0.2s, background 0.2s, opacity 0.2s;
         }
-        .dock-btn:hover { transform: scale(1.1); background: #22222d; }
+        .dock-btn:hover { 
+            transform: scale(1.1); background: #22222d; 
+            /* Se vuelve opaco al pasar el mouse */
+            opacity: 1; 
+        }
 
         button { width: 100%; box-sizing: border-box; }
         button.btn-primary { background: linear-gradient(135deg, #162923, #225e4c); color: #fff; border: 1px solid #287a62; padding: 6px; font-weight: bold; border-radius: 3px; cursor: pointer; font-size: 10px; margin-bottom: 4px; text-align: left; padding-left: 8px;}
@@ -103,10 +109,17 @@
         select.role-select { background: #1a1a24; color: #ddd; border: 1px solid var(--border-color); border-radius: 3px; font-size: 10px; padding: 2px; }
         
         #sosButton {
-            position: absolute; top: 75px; right: 15px; z-index: 450; background: linear-gradient(135deg, #c0392b, #e74c3c);
+            position: absolute; top: 235px; right: 15px; z-index: 450; background: linear-gradient(135deg, #c0392b, #e74c3c);
             color: white; border: 2px solid #ffd700; border-radius: 50%; width: 45px; height: 45px; font-size: 20px;
             cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(231,76,60,0.6);
+            /* Transparencia permanente añadida */
+            opacity: 0.4;
+            transition: transform 0.2s, background 0.2s, opacity 0.2s;
             animation: pulse 2s infinite;
+        }
+        #sosButton:hover {
+            opacity: 1;
+            transform: scale(1.1);
         }
 
         #buildingModal {
@@ -197,6 +210,8 @@
                 <button class="dock-btn" onclick="openVillagersModal()" title="Gestionar aldeanos">🚻</button>
                 <button class="dock-btn" onclick="openBuildingsModal()" title="Edificios">🏗️</button>
                 <button class="dock-btn" onclick="openResourcesModal()" title="Recursos">♻️</button>
+                <!-- Botón de Militares -->
+                <button class="dock-btn" onclick="openMilitaryModal()" title="Militares">⚔️</button>
             </div>
 
             <canvas id="gameCanvas" width="1600" height="1600" style="width: 800px; height: 800px;"></canvas>
@@ -242,7 +257,7 @@
             "Mina de oro 🟡": { era: 1, w: 40, s: 40, hp: 300, resourceType: 'oro', maxUnits: 1000 },
             "Minas de hierro ⚫": { era: 1, w: 40, s: 40, hp: 300, resourceType: 'hierro', maxUnits: 1000 },
             "Minas de piedra ⚪": { era: 1, w: 40, s: 40, hp: 300, resourceType: 'piedra', maxUnits: 1000 },
-            "Mercado 🛒": { era: 1, w: 100, s: 80, hp: 500, icon: '🛒' }, // NUEVO EDIFICIO MERCADO
+            "Mercado 🛒": { era: 1, w: 100, s: 80, hp: 500, icon: '🛒' },
             "Muelle ⚓": { era: 1, w: 60, s: 20, hp: 300 },
             "Iglesia ⛪": { era: 2, w: 200, s: 300, hp: 600 },
             "Castillo 🏰": { era: 2, w: 400, s: 600, hp: 1500 },
@@ -261,6 +276,8 @@
                 government: 'ninguno', religion: 'roja',
                 kingLocationPublished: false,
                 kingLocationTimer: 0,
+                enemyUrbanCenters: [], // Centros urbanos enemigos
+                militaryMode: 'defensa', // Modo por defecto
                 messages: ""
             };
         }
@@ -360,6 +377,15 @@
                     
                     handleResourceDepletionAndRenewal();
 
+                    // Simulación de aparición ocasional de centros urbanos enemigos
+                    if (state.year >= 5 && state.year % 15 === 0 && state.enemyUrbanCenters.length < 2) {
+                        let ex = Math.random() > 0.5 ? 5 : MAP_SIZE - 6;
+                        let ey = Math.random() > 0.5 ? 5 : MAP_SIZE - 6;
+                        state.enemyUrbanCenters = state.enemyUrbanCenters || [];
+                        state.enemyUrbanCenters.push({ x: ex, y: ey, hp: 500, icon: '🏛️' });
+                        addDialogue("⚠️ Alerta Militar", "¡Han aparecido Centros Urbanos enemigos en el mapa! Se permite el despliegue militar de ataque.");
+                    }
+
                     if(state.year % 10 === 0) {
                         let centroUrbano = state.buildings.find(b => b.type === "Centro urbano 🏦" && b.complete);
                         if(centroUrbano) {
@@ -387,7 +413,7 @@
         function handleResourceDepletionAndRenewal() {
             if (state.year % 5 === 0) {
                 respawnNature(true, false);
-                addDialogue("♻️ Ciclo Natural", "Los recursos del mapa agotados se han renovado tras 5 años[cite: 1].");
+                addDialogue("♻️ Ciclo Natural", "Los recursos del mapa agotados se han renovado tras 5 años.");
             }
 
             state.units.forEach(u => {
@@ -573,7 +599,6 @@
             body.innerHTML = eraHtml + bHtml + listHtml;
         }
 
-        // NUEVA INTERFAZ DE MERCADO (Comprar/Vender y Crear Mercaderes)
         window.openMarketInterface = function() {
             const modal = document.getElementById('buildingModal');
             const title = document.getElementById('modalTitle');
@@ -584,7 +609,7 @@
             let merchantsCount = state.units.filter(u => u.type === 'merchant').length;
 
             let html = `
-                <p>Compre o venda recursos utilizando oro. También puede reclutar mercaderes para transporte autónomo entre centros urbanos.</p>
+                <p>Compre o venda recursos utilizando oro. También puede reclutar mercaderes para transporte autónomo.</p>
                 <div style="background:#1a1a24; padding:8px; border-radius:4px; font-size:11px; margin-bottom:10px;">
                     <div>🪙 Oro disponible: <b>${Math.floor(state.resources.gold)}</b></div>
                     <div>🐫 Mercaderes activos: <b>${merchantsCount}</b></div>
@@ -601,6 +626,91 @@
                 <button class="btn-primary" onclick="createMerchant()" style="text-align:center;">🐪 Crear Mercader (Costo: 50🪙, 50🌲)</button>
             `;
             body.innerHTML = html;
+        }
+
+        // LÓGICA MILITAR
+        window.openMilitaryModal = function() {
+            const modal = document.getElementById('buildingModal');
+            const title = document.getElementById('modalTitle');
+            const body = document.getElementById('modalBody');
+            modal.style.display = 'block';
+            title.innerText = "⚔️ Cuartel General Militar";
+
+            let soldiers = state.units.filter(u => u.type === 'soldado').length;
+            let cavalry = state.units.filter(u => u.type === 'cavalry').length;
+            let mercenaries = state.units.filter(u => u.type === 'mercenario').length;
+            let enemyCentersExist = state.enemyUrbanCenters && state.enemyUrbanCenters.length > 0;
+
+            let html = `
+                <p>Recluta fuerzas armadas para la defensa del reino o el ataque a centros enemigos.</p>
+                <div style="background:#1a1a24; padding:8px; border-radius:4px; font-size:11px; margin-bottom:10px;">
+                    <div>🪖 Soldados: <b>${soldiers}</b> | 🐴 Caballería: <b>${cavalry}</b> | 🥷🏼 Mercenarios: <b>${mercenaries}</b></div>
+                    <div>🎯 Centros enemigos detectados: <b>${enemyCentersExist ? 'Sí (' + state.enemyUrbanCenters.length + ')' : 'Ninguno'}</b></div>
+                </div>
+
+                <div style="font-weight:bold; margin-bottom:4px;">Modos de Operación Militar:</div>
+                <div style="display:flex; gap:6px; margin-bottom:10px;">
+                    <button class="btn-sm" style="flex:1; background:${state.militaryMode === 'ataque' ? '#c0392b' : '#1a1a24'};" onclick="setMilitaryMode('ataque')">⚔️ Modo Ataque</button>
+                    <button class="btn-sm" style="flex:1; background:${state.militaryMode !== 'ataque' ? '#27ae60' : '#1a1a24'};" onclick="setMilitaryMode('defensa')">🛡️ Modo Defensa</button>
+                </div>
+
+                <div style="font-weight:bold; margin-bottom:4px;">Reclutar Unidades:</div>
+                <button class="btn-primary" onclick="createMilitaryUnit('soldado')" style="text-align:center;">🪖 Reclutar Soldado (50🪙, 50🍖)</button>
+                <button class="btn-primary" onclick="createMilitaryUnit('cavalry')" style="text-align:center;">🐴 Reclutar Caballería (100🪙, 100🍖)</button>
+                <button class="btn-primary" onclick="createMilitaryUnit('mercenario')" style="text-align:center;">🥷🏼 Contratar Mercenario (150🪙, 50🍖)</button>
+                
+                <button class="btn-sm" style="width:100%; margin-top:8px; background:#2980b9;" onclick="spawnTestEnemyCenter()">➕ Simular Centro Enemigo</button>
+            `;
+            body.innerHTML = html;
+        }
+
+        window.setMilitaryMode = function(mode) {
+            state.militaryMode = mode;
+            if (mode === 'ataque') {
+                let enemyCentersExist = state.enemyUrbanCenters && state.enemyUrbanCenters.length > 0;
+                if (!enemyCentersExist) {
+                    alert("Aviso: No hay centros urbanos enemigos activos para iniciar ataques.");
+                } else {
+                    addDialogue("⚔️ Militares", "¡Modo Ataque activado! Tropas avanzan hacia objetivos enemigos.");
+                }
+            } else {
+                addDialogue("🛡️ Militares", "¡Modo Defensa activado! Tropas protegerán puntos clave.");
+            }
+            openMilitaryModal();
+        }
+
+        window.spawnTestEnemyCenter = function() {
+            state.enemyUrbanCenters = state.enemyUrbanCenters || [];
+            state.enemyUrbanCenters.push({ x: Math.floor(Math.random() * MAP_SIZE), y: Math.floor(Math.random() * MAP_SIZE), hp: 500, icon: '🏛️' });
+            addDialogue("⚔️ Inteligencia", "Se ha revelado la posición de un Centro Urbano enemigo.");
+            openMilitaryModal();
+        }
+
+        window.createMilitaryUnit = function(type) {
+            let costGold = type === 'soldado' ? 50 : (type === 'cavalry' ? 100 : 150);
+            let costFood = type === 'soldado' ? 50 : (type === 'cavalry' ? 100 : 50);
+
+            if (state.resources.gold >= costGold && state.resources.food >= costFood) {
+                state.resources.gold -= costGold;
+                state.resources.food -= costFood;
+
+                let spawnB = state.buildings.find(b => (b.type.includes('Castillo') || b.type.includes('Centro urbano') || b.type.includes('maravilla')) && b.complete) || { x: 20, y: 20 };
+
+                state.units.push({
+                    id: Date.now(),
+                    type: type,
+                    x: spawnB.x,
+                    y: spawnB.y,
+                    hp: type === 'cavalry' ? 200 : (type === 'soldado' ? 100 : 120),
+                    speakTimer: 3,
+                    speech: `¡${type} listo!`
+                });
+
+                addDialogue("⚔️ Cuartel", `¡Unidad (${type}) reclutada con éxito!`);
+                openMilitaryModal();
+            } else {
+                alert("Recursos insuficientes para reclutar esta unidad militar.");
+            }
         }
 
         window.tradeResource = function(type) {
@@ -764,7 +874,7 @@
             
             if(state.eraIndex < 6) {
                 let nextReq = calculateDynamicEraCost(state.eraIndex + 1);
-                advice += `📈 <b>Siguiente Era (Ajuste Dinámico):</b> Requiere ${nextReq.g}🪙, ${nextReq.w}🌲, ${nextReq.f}🍖, ${nextReq.s}🪨.<br>`;
+                advice += `📈 <b>Siguiente Era:</b> Requiere ${nextReq.g}🪙, ${nextReq.w}🌲, ${nextReq.f}🍖, ${nextReq.s}🪨.<br>`;
             } else {
                 advice += "🌟 ¡Ha alcanzado la Era Espacial!";
             }
@@ -878,25 +988,80 @@
                     if(b.type === '🌽 Granja') state.resources.food += 1.5 * mod;
                     if(b.type.includes('Mina')) { state.resources.stone += 0.8 * mod; state.resources.gold += 0.3 * mod; }
                     if(b.type === '🪚 Aserradero') state.resources.wood += 1.5 * mod;
-                    if(b.type === 'Mercado 🛒') state.resources.gold += 0.5 * mod; // Renta pasiva del mercado
+                    if(b.type === 'Mercado 🛒') state.resources.gold += 0.5 * mod;
                 }
             });
 
-            // LÓGICA DE MERCADERES (Viajan entre centros urbanos aliados)
-            let urbanCenters = state.buildings.filter(b => b.type === "Centro urbano 🏦" && b.complete);
+            // LÓGICA DE MERCADERES
+            let urbanCenters = state.buildings.filter(b => (b.type === "Centro urbano 🏦" || b.type.includes("Castillo") || b.type.includes("maravilla")) && b.complete);
             state.units.forEach(u => {
                 if (u.type === 'merchant') {
                     if (u.x < u.targetX) u.x++; else if (u.x > u.targetX) u.x--;
                     if (u.y < u.targetY) u.y++; else if (u.y > u.targetY) u.y--;
 
-                    // Si llega al destino, entrega oro/mercancía y busca otro centro urbano aliado
                     if (u.x === u.targetX && u.y === u.targetY) {
                         state.resources.gold += 10;
-                        addDialogue("🐪 Ruta Comercial", "Mercader entregó mercancía en Centro Urbano aliado. +10🪙 de ganancia.");
+                        addDialogue("🐪 Ruta Comercial", "Mercader entregó mercancía. +10🪙.");
                         if (urbanCenters.length > 0) {
                             let nextCenter = urbanCenters[Math.floor(Math.random() * urbanCenters.length)];
                             u.targetX = nextCenter.x;
                             u.targetY = nextCenter.y;
+                        }
+                    }
+                }
+            });
+
+            // LÓGICA DE MILITARES
+            let enemyCentersExist = state.enemyUrbanCenters && state.enemyUrbanCenters.length > 0;
+            let castleOrWonder = state.buildings.find(b => (b.type.includes('Castillo') || b.type.includes('maravilla') || b.type.includes('Centro urbano')) && b.complete);
+
+            state.units.forEach(u => {
+                if (u.type === 'soldado' || u.type === 'cavalry' || u.type === 'mercenario') {
+                    let underAttack = state.barbarians.length > 0 || (rey && !rey.inRefuge && Math.abs(rey.x - u.x) <= 5);
+                    
+                    if (state.militaryMode === 'ataque' && enemyCentersExist) {
+                        let targetEc = state.enemyUrbanCenters[0];
+                        if (targetEc) {
+                            if (u.x < targetEc.x) u.x++; else if (u.x > targetEc.x) u.x--;
+                            if (u.y < targetEc.y) u.y++; else if (u.y > targetEc.y) u.y--;
+                            if (Math.abs(u.x - targetEc.x) <= 1 && Math.abs(u.y - targetEc.y) <= 1) {
+                                targetEc.hp -= 30;
+                                if (targetEc.hp <= 0) {
+                                    state.enemyUrbanCenters.shift();
+                                    addDialogue("⚔️ Victoria Militar", "¡Centro urbano enemigo destruido!");
+                                }
+                            }
+                        }
+                    } else {
+                        if (underAttack) {
+                            if (state.barbarians.length > 0) {
+                                let bTarget = state.barbarians[0];
+                                if (u.x < bTarget.x) u.x++; else if (u.x > bTarget.x) u.x--;
+                                if (u.y < bTarget.y) u.y++; else if (u.y > bTarget.y) u.y--;
+                                if (Math.abs(u.x - bTarget.x) <= 1 && Math.abs(u.y - bTarget.y) <= 1) {
+                                    bTarget.hp -= 50;
+                                    addDialogue("🛡️ Defensa", "¡Militar repelió a un bárbaro!");
+                                }
+                            }
+                        } else {
+                            if (castleOrWonder && Math.random() < 0.3) {
+                                u.targetX = castleOrWonder.x; u.targetY = castleOrWonder.y;
+                            }
+                            if (u.targetX !== undefined && (u.x !== u.targetX || u.y !== u.targetY)) {
+                                if (u.x < u.targetX) u.x++; else if (u.x > u.targetX) u.x--;
+                                if (u.y < u.targetY) u.y++; else if (u.y > u.targetY) u.y--;
+                            }
+                        }
+                    }
+
+                    if (u.type === 'mercenario') {
+                        if (Math.random() < 0.05) {
+                            u.targetX = Math.floor(Math.random() * MAP_SIZE);
+                            u.targetY = Math.floor(Math.random() * MAP_SIZE);
+                        }
+                        if (Math.random() < 0.002) {
+                            u.type = 'soldado'; 
+                            addDialogue("⚠️ Traición", "¡Un mercenario se ha convertido en traidor!");
                         }
                     }
                 }
@@ -924,7 +1089,6 @@
                 state.barbarians.push({ x: Math.random()>0.5?0:MAP_SIZE-1, y: Math.random()>0.5?0:MAP_SIZE-1, hp: 150 + (state.eraIndex*60) });
             }
             
-            // Los bárbaros atacan al Rey y también a los mercaderes vulnerables
             state.barbarians.forEach(b => {
                 if(b.x < rey.x) b.x++; else if(b.x > rey.x) b.x--;
                 if(b.y < rey.y) b.y++; else if(b.y > rey.y) b.y--;
@@ -934,11 +1098,10 @@
                     rey.hp -= damage;
                 }
 
-                // Vulnerabilidad de mercaderes ante bárbaros
                 state.units.forEach(u => {
                     if (u.type === 'merchant' && Math.abs(u.x - b.x) <= 1 && Math.abs(u.y - b.y) <= 1) {
                         u.hp -= 50;
-                        addDialogue("⚠️ Ataque Bárbaro", "¡Un mercader ha sido interceptado por bárbaros!");
+                        addDialogue("⚠️ Ataque Bárbaro", "¡Un mercader interceptado por bárbaros!");
                     }
                 });
             });
@@ -957,7 +1120,7 @@
             }
             for(let y=0; y<MAP_SIZE; y++) for(let x=0; x<MAP_SIZE; x++) if(state.fog[y][x] === 2) state.fog[y][x] = 1;
             state.units.forEach(u => {
-                let range = 4;
+                let range = u.type === 'mercenario' ? 7 : 4; 
                 for(let dy = -range; dy <= range; dy++) {
                     for(let dx = -range; dx <= range; dx++) {
                         let ny = u.y + dy, nx = u.x + dx;
@@ -987,6 +1150,14 @@
                     ctx.fillText(res.icon, (res.x+0.5)*CELL_SIZE, (res.y+0.5)*CELL_SIZE); 
                 });
                 
+                if (state.enemyUrbanCenters) {
+                    state.enemyUrbanCenters.forEach(ec => {
+                        ctx.fillText('🏛️', (ec.x+0.5)*CELL_SIZE, (ec.y+0.5)*CELL_SIZE);
+                        ctx.fillStyle = "red"; ctx.fillRect(ec.x*CELL_SIZE+4, ec.y*CELL_SIZE-6, CELL_SIZE-8, 4);
+                        ctx.fillStyle = "#f39c12"; ctx.fillRect(ec.x*CELL_SIZE+4, ec.y*CELL_SIZE-6, (CELL_SIZE-8)*(ec.hp/500), 4);
+                    });
+                }
+
                 state.buildings.forEach(b => {
                     let bx = b.x * CELL_SIZE, by = b.y * CELL_SIZE;
                     let size = (b.type.includes('Castillo') || b.type.includes('Torre') || b.type.includes('maravilla')) ? CELL_SIZE * 1.5 : CELL_SIZE;
@@ -1010,7 +1181,13 @@
                             ctx.fillStyle = "#0f0"; ctx.fillRect(u.x*CELL_SIZE+4, u.y*CELL_SIZE-6, (CELL_SIZE-8)*(u.hp/500), 4);
                         }
                     } else if(u.type === 'merchant') {
-                        ctx.fillText('🐪', ux, uy); // Renderizado de mercader
+                        ctx.fillText('🐪', ux, uy);
+                    } else if(u.type === 'soldado') {
+                        ctx.fillText('🪖', ux, uy);
+                    } else if(u.type === 'cavalry') {
+                        ctx.fillText('🐴', ux, uy);
+                    } else if(u.type === 'mercenario') {
+                        ctx.fillText('🥷🏼', ux, uy);
                     } else {
                         let roleIcon = u.role === 'cazador' ? '🏹' : (u.role === 'pescador' ? '🎣' : (u.role === 'agricultor' ? '👩🏼‍🌾' : (u.role==='leñador'?'🪓':(u.role==='minero'?'⚒️':'👷'))));
                         ctx.fillText(roleIcon, ux, uy);
